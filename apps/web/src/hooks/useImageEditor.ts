@@ -43,6 +43,29 @@ export function useImageEditor() {
     fabricCanvas.on("object:modified", onObjectModified);
     fabricCanvas.on("object:added", onObjectAdded);
 
+    // Double click to replace slot image
+    fabricCanvas.on("mouse:dblclick", (options) => {
+      const target = options.target;
+      if (target && (target as any).isSlot) {
+        // Trigger file picker
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        input.onchange = (e) => {
+          const file = (e.target as HTMLInputElement).files?.[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = (f) => {
+              const data = f.target?.result as string;
+              fillSlot(data, target as Rect);
+            };
+            reader.readAsDataURL(file);
+          }
+        };
+        input.click();
+      }
+    });
+
     // Basic keyboard shortcuts
     const handleKeyDown = (e: KeyboardEvent) => {
       // 1. Delete/Backspace
@@ -212,7 +235,13 @@ export function useImageEditor() {
   const fillSlot = useCallback((url: string, slot: Rect) => {
     if (!canvas) return;
     FabricImage.fromURL(url, { crossOrigin: "anonymous" }).then((img) => {
-      // 1. Scale image to COVER the slot
+      const slotId = (slot as any).slotId;
+      
+      // 1. Remove existing image in this slot
+      const existingImages = canvas.getObjects().filter(obj => (obj as any).parentSlotId === slotId);
+      existingImages.forEach(imgObj => canvas.remove(imgObj));
+
+      // 2. Scale image to COVER the slot
       const slotW = slot.getScaledWidth();
       const slotH = slot.getScaledHeight();
       const scale = Math.max(slotW / img.width!, slotH / img.height!);
@@ -222,10 +251,11 @@ export function useImageEditor() {
         scaleY: scale,
         left: slot.left! + (slotW - img.width! * scale) / 2,
         top: slot.top! + (slotH - img.height! * scale) / 2,
+        selectable: false, // Make slots images non-selectable directly
+        evented: false, 
       });
 
-      // 2. Wrap image in a group or use clipPath? 
-      // For collage slots, clipPath is cleaner.
+      // 3. ClipPath
       const clipRect = new Rect({
         left: slot.left,
         top: slot.top,
@@ -235,12 +265,16 @@ export function useImageEditor() {
       });
       img.set({ clipPath: clipRect });
 
-      // 3. Mark image as part of this slot for later updates
+      // 4. Mark image as part of this slot
       (img as any).isSlotImage = true;
-      (img as any).parentSlotId = (slot as any).id;
+      (img as any).parentSlotId = slotId;
 
       canvas.add(img);
-      canvas.sendObjectToBack(img); // Put image behind the thin slot border if needed
+      canvas.sendObjectToBack(img); 
+      
+      // Make slot semi-transparent to see the image but still selectable
+      slot.set({ fill: "transparent", stroke: "rgba(99, 102, 241, 0.5)" });
+      
       canvas.renderAll();
       pushHistory(canvas.toJSON() as any);
     });

@@ -130,15 +130,20 @@ export function PropertiesPanel() {
                   };
                   input.click();
                 }}
-                className="w-full bg-indigo-600 hover:bg-indigo-500 text-white text-xs gap-2"
+                className="w-full bg-indigo-600 hover:bg-indigo-500 text-white text-xs gap-2 py-6 rounded-xl shadow-lg shadow-indigo-500/20 transition-all font-semibold"
              >
-                <ImageIcon className="w-3.5 h-3.5" />
-                Replace with Image
+                <ImageIcon className="w-4 h-4" />
+                Select Photo to Fill
              </Button>
           </div>
-          <p className="text-[10px] text-neutral-500 italic text-center leading-relaxed">
-            Click the button above to fill this slot with your own photo.
-          </p>
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 text-indigo-400 justify-center">
+               <span className="text-[10px] uppercase tracking-widest font-bold">Pro Tip</span>
+            </div>
+            <p className="text-[11px] text-neutral-400 italic text-center leading-relaxed px-4">
+              "You can also **double-click** any slot on the canvas to quickly upload a photo."
+            </p>
+          </div>
         </div>
       </div>
     );
