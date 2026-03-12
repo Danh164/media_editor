@@ -2,6 +2,13 @@ import { create } from "zustand";
 
 export type VideoSidebarPanel = 'trim' | 'audio' | 'subtitle' | 'text' | null;
 
+export interface Subtitle {
+  id: string;
+  text: string;
+  start: number;
+  end: number;
+}
+
 interface VideoState {
   isLoaded: boolean;
   setIsLoaded: (isLoaded: boolean) => void;
@@ -33,6 +40,10 @@ interface VideoState {
   setOverlayTextColor: (color: string) => void;
   overlayFontSize: number;
   setOverlayFontSize: (size: number) => void;
+
+  // Subtitles
+  subtitles: Subtitle[];
+  setSubtitles: (subs: Subtitle[] | ((prev: Subtitle[]) => Subtitle[])) => void;
 }
 
 export const useVideoStore = create<VideoState>((set) => ({
@@ -65,5 +76,10 @@ export const useVideoStore = create<VideoState>((set) => ({
   setOverlayTextColor: (overlayTextColor) => set({ overlayTextColor }),
   overlayFontSize: 32,
   setOverlayFontSize: (overlayFontSize) => set({ overlayFontSize }),
+
+  subtitles: [],
+  setSubtitles: (subs) => set((state) => ({ 
+    subtitles: typeof subs === 'function' ? subs(state.subtitles) : subs 
+  })),
 }));
 

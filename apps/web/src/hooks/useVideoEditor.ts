@@ -218,7 +218,9 @@ export function useVideoEditor() {
       const ext = useVideoStore.getState().videoExt || 'mp4';
       const videoInputName = `input.${ext}`;
       const audioInputName = 'audio_in' + (audioFile.name.endsWith('.mp3') ? '.mp3' : '.aac');
-      const outputName = `muxed_output.${ext}`;
+      const outputName = `mixed_output.${ext}`;
+      
+      // For MP4/MOV we use aac, for WebM we use libvorbis
       const audioCodec = ext === 'webm' ? 'libvorbis' : 'aac';
 
       try { ffmpeg.FS("unlink", audioInputName); } catch {}
@@ -226,44 +228,127 @@ export function useVideoEditor() {
 
       ffmpeg.FS('writeFile', audioInputName, await fetchFile(audioFile));
       
-      // Ensure video input is synced
+      // Ensure video input is synced with latest state
       if (videoUrl) {
          ffmpeg.FS('writeFile', videoInputName, await fetchFile(videoUrl));
       }
 
+      /**
+       * MIXING STRATEGY:
+       * -i 0: Video input
+       * -i 1: Audio input
+       * filter_complex [0:a][1:a]amix=inputs=2:duration=first[a]
+       * -shortest and -map [a] ensure we don't loop or lose video.
+       */
       await ffmpeg.run(
         '-y',
         '-i', videoInputName,
         '-i', audioInputName,
-        '-vf', 'scale=trunc(iw/2)*2:trunc(ih/2)*2', // Ensure even dimensions
-        '-c:v', 'libx264',
-        '-preset', 'ultrafast',
-        '-c:a', audioCodec,
+        '-filter_complex', '[0:a][1:a]amix=inputs=2:duration=first[a]',
         '-map', '0:v:0',
-        '-map', '1:a:0',
+        '-map', '[a]',
+        '-c:v', 'copy', // Just copy video to save time/quality
+        '-c:a', audioCodec,
         '-shortest',
         outputName
       );
 
       const data = ffmpeg.FS('readFile', outputName);
       const mime = ext === 'webm' ? 'video/webm' : ext === 'mov' ? 'video/quicktime' : 'video/mp4';
-      const objectUrl = URL.createObjectURL(
-        new Blob([data], { type: mime })
-      );
+      const objectUrl = URL.createObjectURL(new Blob([data], { type: mime }));
 
       if (videoUrl) URL.revokeObjectURL(videoUrl);
       setVideoUrl(objectUrl);
 
-      // Replace input for future operations
+      // Save for future ops
       ffmpeg.FS('writeFile', videoInputName, data);
+      alert("Audio mixed successfully!");
     } catch (e) {
-      console.error('Error adding audio track:', e);
-      alert(`Adding audio failed! FFmpeg error: ${lastErrorLog || 'Unknown crash'}`);
+      console.error('Error mixing audio track:', e);
+      alert(`Mixing audio failed! FFmpeg error: ${lastErrorLog || 'Unknown crash'}`);
     } finally {
       setIsProcessing(false);
       setProgress(0);
     }
   };
+
+  const burnSubtitles = useCallback(async () => {
+    if (!ffmpegRef.current || !ffmpegRef.current.isLoaded()) {
+      await loadFFmpeg();
+    }
+    
+    const { 
+      videoUrl, videoExt, setIsProcessing, setProgress, setVideoUrl,
+      subtitles
+    } = useVideoStore.getState();
+
+    if (!videoUrl || !ffmpegRef.current || subtitles.length === 0) return;
+
+    setIsProcessing(true);
+    setProgress(0);
+    const ffmpeg = ffmpegRef.current;
+    const { fetchFile } = window.FFmpeg;
+
+    try {
+      const ext = videoExt || "mp4";
+      const inputName = `input.${ext}`;
+      const outputName = `subtitle_output.${ext}`;
+      const srtName = "subs.srt";
+
+      // 1. Generate SRT content
+      const srtContent = subtitles.map((s, i) => {
+        const formatTime = (seconds: number) => {
+          const date = new Date(0);
+          date.setSeconds(seconds);
+          const ms = Math.floor((seconds % 1) * 1000);
+          return date.toISOString().substr(11, 8) + "," + ms.toString().padStart(3, '0');
+        };
+        return `${i + 1}\n${formatTime(s.start)} --> ${formatTime(s.end)}\n${s.text}\n`;
+      }).join('\n');
+
+      // 2. Write files
+      ffmpeg.FS("writeFile", inputName, await fetchFile(videoUrl));
+      ffmpeg.FS("writeFile", srtName, new TextEncoder().encode(srtContent));
+      
+      try { ffmpeg.FS("unlink", outputName); } catch {}
+
+      /**
+       * SUBTITLE BURNING:
+       * We use drawtext repeatedly for each subtitle because 'subtitles' filter 
+       * in wasm builds often has issues with font paths/configs.
+       */
+      const filters = subtitles.map(s => {
+        const escaped = s.text.replace(/'/g, "'\\\\''");
+        return `drawtext=text='${escaped}':fontcolor=white:fontsize=24:x=(w-text_w)/2:y=h-60:enable='between(t,${s.start},${s.end})'`;
+      }).join(',');
+
+      await ffmpeg.run(
+        "-y",
+        "-i", inputName,
+        "-vf", `scale=trunc(iw/2)*2:trunc(ih/2)*2,${filters}`,
+        "-c:v", "libx264",
+        "-preset", "ultrafast",
+        "-c:a", "copy",
+        outputName
+      );
+
+      const data = ffmpeg.FS("readFile", outputName);
+      const mime = ext === 'webm' ? 'video/webm' : ext === 'mov' ? 'video/quicktime' : 'video/mp4';
+      const url = URL.createObjectURL(new Blob([data], { type: mime }));
+      
+      if (videoUrl) URL.revokeObjectURL(videoUrl);
+      setVideoUrl(url);
+      
+      ffmpeg.FS("writeFile", inputName, data);
+      alert("Subtitles burned successfully!");
+    } catch (error: any) {
+      console.error(error);
+      alert("Subtitle burning failed!");
+    } finally {
+      setIsProcessing(false);
+      setProgress(0);
+    }
+  }, [loadFFmpeg, setIsProcessing, setProgress, setVideoUrl]);
 
   const burnText = useCallback(async () => {
     if (!ffmpegRef.current || !ffmpegRef.current.isLoaded()) {
@@ -340,5 +425,6 @@ export function useVideoEditor() {
     trimVideo,
     addAudioTrack,
     burnText,
+    burnSubtitles,
   };
 }

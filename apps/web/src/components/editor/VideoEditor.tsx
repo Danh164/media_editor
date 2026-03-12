@@ -11,6 +11,8 @@ import { VideoTimeline } from "./VideoTimeline";
 import { TrimPanel } from "./TrimPanel";
 import { AudioPanel } from "./AudioPanel";
 import { VideoTextPanel } from "./VideoTextPanel";
+import { VideoSubtitlePanel } from "./VideoSubtitlePanel";
+import { SubtitleTrack } from "./SubtitleTrack";
 import { useVideoEditor } from "@/hooks/useVideoEditor";
 
 function formatTimestamp(s: number): string {
@@ -107,17 +109,14 @@ export function VideoEditor() {
     if (activeSidebarPanel === "subtitle") {
       return (
         <div className={panelClass}>
-          <div className="p-4 space-y-3">
-            <p className="text-sm font-semibold text-white">Subtitles</p>
-            <p className="text-xs text-neutral-500">Subtitle tool coming soon.</p>
-          </div>
+          <VideoSubtitlePanel onApplySubtitles={burnSubtitles} />
         </div>
       );
     }
     return null;
   };
 
-  const { trimVideo, addAudioTrack, burnText } = useVideoEditor();
+  const { trimVideo, addAudioTrack, burnText, burnSubtitles } = useVideoEditor();
 
   return (
     <div className="flex flex-1 h-full overflow-hidden">
@@ -295,17 +294,32 @@ export function VideoEditor() {
           {/* Track rows */}
           <div className="flex-1 overflow-y-auto p-2 space-y-1.5">
             <VideoTimeline zoom={zoom} videoRef={videoRef} />
-            {/* Audio track placeholder */}
+            
+            {/* Audio track */}
             <div className="flex items-center h-10 px-4 gap-3">
               <div className="w-24 shrink-0 text-[10px] font-medium text-neutral-600">Audio Track</div>
-              <div className="flex-1 h-full bg-neutral-900 rounded border border-neutral-800/50 flex items-center justify-center">
+              <div 
+                className="flex-1 h-full bg-neutral-900 rounded border border-neutral-800/50 relative overflow-hidden"
+                style={{ minWidth: `${100 * zoom}%` }}
+              >
                 {useVideoStore.getState().audioUrl ? (
-                  <div className="w-full h-full bg-emerald-900/20 rounded border-x border-emerald-900/50" />
+                  <div className="absolute inset-0 bg-emerald-500/10 border-y border-emerald-500/20 flex items-center px-4">
+                    <div className="w-full h-2 bg-emerald-500/20 rounded-full overflow-hidden flex gap-0.5">
+                       {Array.from({length: 40}).map((_, i) => (
+                         <div key={i} className="flex-1 bg-emerald-400" style={{ height: `${Math.random() * 100}%` }} />
+                       ))}
+                    </div>
+                  </div>
                 ) : (
-                  <span className="text-[10px] text-neutral-700">Empty</span>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="text-[9px] text-neutral-700 italic">No audio track</span>
+                  </div>
                 )}
               </div>
             </div>
+
+            {/* Subtitle track */}
+            <SubtitleTrack zoom={zoom} />
           </div>
         </div>
       </div>
