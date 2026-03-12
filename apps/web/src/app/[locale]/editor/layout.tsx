@@ -35,6 +35,16 @@ export default function EditorLayout({
         
         {mode === "image" && <LayerPanel />}
 
+        {mode === "image" && activeTool === "removeBg" && (
+          <div className="w-64 shrink-0 bg-[#1a1a1a] border-l border-neutral-800 overflow-y-auto">
+            <RemoveBgTool />
+          </div>
+        )}
+        {mode === "image" && activeTool === "upscale" && (
+          <div className="w-64 shrink-0 bg-[#1a1a1a] border-l border-neutral-800 overflow-y-auto">
+            <UpscaleTool />
+          </div>
+        )}
         {mode === "image" && activeTool === "shapes" && (
           <ShapePanel />
         )}

@@ -1,13 +1,13 @@
 "use client";
 
 import { Slider } from "@/components/ui/slider";
-import { useEffect, useState } from "react";
-import { Settings2, SlidersHorizontal } from "lucide-react";
+import { useRef, useEffect, useState } from "react";
+import { Settings2, SlidersHorizontal, Pen } from "lucide-react";
 import { useEditorStore } from "@/stores/editorStore";
 import { filters, FabricImage } from "fabric";
 
 export function PropertiesPanel() {
-  const { activeObject, activeTool, canvas, pushHistory } = useEditorStore();
+  const { activeObject, activeTool, canvas, pushHistory, strokeColor, setStrokeColor, strokeWidth, setStrokeWidth } = useEditorStore();
   const [opacity, setOpacity] = useState(100);
   const [posX, setPosX] = useState(0);
   const [posY, setPosY] = useState(0);
@@ -84,7 +84,7 @@ export function PropertiesPanel() {
     commitHistory();
   };
 
-  if (!activeObject) {
+  if (!activeObject && activeTool !== "draw") {
     return (
       <div className="w-64 bg-[#1a1a1a] border-l border-neutral-800 flex flex-col h-full shrink-0">
         <div className="h-12 border-b border-neutral-800 flex items-center px-4 shrink-0">
@@ -93,6 +93,45 @@ export function PropertiesPanel() {
         </div>
         <div className="flex-1 flex items-center justify-center text-xs text-neutral-500 p-4 text-center">
           Select an object to edit its properties
+        </div>
+      </div>
+    );
+  }
+
+  // Draw properties (always show when active)
+  if (activeTool === "draw") {
+    return (
+      <div className="w-64 bg-[#1a1a1a] border-l border-neutral-800 flex flex-col h-full shrink-0">
+        <div className="h-12 border-b border-neutral-800 flex items-center px-4 shrink-0">
+          <Pen className="w-4 h-4 mr-2 text-neutral-400" />
+          <h2 className="text-sm font-semibold text-neutral-200">Drawing</h2>
+        </div>
+        <div className="flex-1 p-4 space-y-6">
+          <div className="space-y-3">
+            <label className="text-xs font-medium text-neutral-400">Brush Color</label>
+            <input 
+              type="color" 
+              value={strokeColor} 
+              onChange={(e) => setStrokeColor(e.target.value)}
+              className="w-full h-10 rounded cursor-pointer bg-transparent border border-neutral-800"
+            />
+          </div>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-medium text-neutral-400">Brush Size</label>
+              <span className="text-xs text-neutral-500 font-mono">{strokeWidth}px</span>
+            </div>
+            <Slider 
+              value={[strokeWidth]} 
+              onValueChange={(val) => setStrokeWidth(Array.isArray(val) ? val[0] : val as unknown as number)} 
+              max={100} 
+              min={1}
+              step={1} 
+            />
+          </div>
+          <p className="text-[10px] text-neutral-500 italic mt-4 text-center">
+             Drawing mode is active. Drag on the canvas to paint.
+          </p>
         </div>
       </div>
     );
@@ -155,7 +194,7 @@ export function PropertiesPanel() {
             </div>
           </div>
           
-          {activeObject.type === 'i-text' && (
+          {activeObject && activeObject.type === 'i-text' && (
             <div className="space-y-3 pt-4 border-t border-neutral-800">
               <label className="text-xs font-medium text-neutral-400">Text Color</label>
               <input 
@@ -168,7 +207,7 @@ export function PropertiesPanel() {
             </div>
           )}
 
-          {activeObject.type === 'image' && activeTool === 'filter' && (
+          {activeObject && activeObject.type === 'image' && activeTool === 'filter' && (
             <div className="space-y-4 pt-4 border-t border-neutral-800">
               <div className="flex items-center gap-2 mb-2">
                 <SlidersHorizontal className="w-4 h-4 text-indigo-400" />

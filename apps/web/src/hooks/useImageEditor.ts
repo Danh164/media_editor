@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useCallback } from "react";
-import { Canvas, Rect, Circle, IText, FabricImage, Triangle, Polygon } from "fabric";
+import { Canvas, Rect, Circle, IText, FabricImage, Triangle, Polygon, PencilBrush } from "fabric";
 import { useEditorStore } from "@/stores/editorStore";
 
 export function useImageEditor() {
@@ -94,10 +94,13 @@ export function useImageEditor() {
     
     if (activeTool === "draw") {
       canvas.isDrawingMode = true;
-      if (canvas.freeDrawingBrush) {
-        canvas.freeDrawingBrush.color = strokeColor;
-        canvas.freeDrawingBrush.width = strokeWidth;
+      if (!canvas.freeDrawingBrush) {
+        canvas.freeDrawingBrush = new PencilBrush(canvas);
       }
+      canvas.freeDrawingBrush.color = strokeColor;
+      canvas.freeDrawingBrush.width = strokeWidth;
+      canvas.discardActiveObject();
+      canvas.requestRenderAll();
     } else {
       canvas.isDrawingMode = false;
     }

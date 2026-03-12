@@ -1,7 +1,8 @@
 "use client";
 
 import { useEditorStore } from "@/stores/editorStore";
-import { Image as ImageIcon, Frame, Maximize } from "lucide-react";
+import { Frame, Image as ImageIcon } from "lucide-react";
+import { Rect } from "fabric";
 
 const TEMPLATES = [
   { id: "frame-1", label: "Classic Border", type: "frame" },
@@ -15,10 +16,43 @@ export function TemplatePanel() {
   const applyTemplate = (id: string) => {
     if (!canvas) return;
     
-    // Simple mock: Apply a border or background
+    // Clear existing frames if any
+    const existingFrames = canvas.getObjects().filter(obj => (obj as any).isFrame);
+    existingFrames.forEach(f => canvas.remove(f));
+
     if (id === "frame-1") {
-      canvas.backgroundColor = "#fafafa";
-      // We could add a large rectangle as a frame
+      // Classic Border
+      const frame = new Rect({
+        left: 0,
+        top: 0,
+        width: canvas.width,
+        height: canvas.height,
+        fill: "transparent",
+        stroke: "#000000",
+        strokeWidth: 40,
+        selectable: false,
+        evented: false,
+      });
+      (frame as any).isFrame = true;
+      canvas.add(frame);
+      canvas.sendObjectToBack(frame);
+    } else if (id === "frame-3") {
+      // Polaroid
+      const frame = new Rect({
+        left: 0,
+        top: 0,
+        width: canvas.width,
+        height: canvas.height,
+        fill: "transparent",
+        stroke: "#ffffff",
+        strokeWidth: 100,
+        selectable: false,
+        evented: false,
+      });
+      (frame as any).isFrame = true;
+      canvas.add(frame);
+      canvas.sendObjectToBack(frame);
+      canvas.backgroundColor = "#f3f4f6";
     }
     
     canvas.renderAll();
