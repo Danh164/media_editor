@@ -60,21 +60,32 @@ export function ExportModal({ mode, onClose }: ExportModalProps) {
 
     try {
       const scale = parseFloat(imageScale);
-      const format = IMAGE_FORMATS.find((f) => f.id === imageFormat)!;
       const quality = imageFormat === "png" ? 1 : imageQuality / 100;
 
-      const dataUrl = canvas.toDataURL({
-        format: imageFormat,
-        quality,
+      // Ensure quality is only passed for formats that support it
+      const options: any = {
+        format: imageFormat === "jpeg" ? "jpeg" : imageFormat,
         multiplier: scale,
-      });
+      };
+      
+      if (imageFormat !== "png") {
+        options.quality = quality;
+      }
+
+      const dataUrl = canvas.toDataURL(options);
 
       const link = document.createElement("a");
       link.href = dataUrl;
-      link.download = `export.${imageFormat}`;
+      link.download = `export-${new Date().getTime()}.${imageFormat}`;
+      document.body.appendChild(link);
       link.click();
+      document.body.removeChild(link);
+      
       setExported(true);
       setTimeout(() => setExported(false), 2500);
+    } catch (err) {
+      console.error("Export failed:", err);
+      alert("Export failed! This might be due to non-standard images on the canvas. Try a different format or check the console.");
     } finally {
       setIsExporting(false);
     }
@@ -86,18 +97,19 @@ export function ExportModal({ mode, onClose }: ExportModalProps) {
     setIsExporting(true);
 
     try {
-      // Fetch the blob from the object URL, then trigger download
-      const response = await fetch(videoUrl);
-      const blob = await response.blob();
-      const ext = videoExt ? `.${videoExt}` : '.mp4';
-      const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
-      link.href = url;
-      link.download = `edited-video${ext}`;
+      link.href = videoUrl;
+      const ext = videoExt ? `.${videoExt}` : '.mp4';
+      link.download = `edited-video-${new Date().getTime()}${ext}`;
+      document.body.appendChild(link);
       link.click();
-      URL.revokeObjectURL(url);
+      document.body.removeChild(link);
+      
       setExported(true);
       setTimeout(() => setExported(false), 2500);
+    } catch (err) {
+      console.error("Video export failed:", err);
+      alert("Failed to download video. Please try again.");
     } finally {
       setIsExporting(false);
     }
