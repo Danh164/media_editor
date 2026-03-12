@@ -1,13 +1,22 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Trash2, Clock, Type, Save } from "lucide-react";
+import { Plus, Trash2, Clock, Type, Save, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useVideoStore, Subtitle } from "@/stores/videoStore";
+import { useVideoEditor } from "@/hooks/useVideoEditor";
 
 export function VideoSubtitlePanel({ onApplySubtitles }: { onApplySubtitles: () => void }) {
   const { subtitles, setSubtitles, currentTime, videoDuration } = useVideoStore();
+  const { generateAISubtitles } = useVideoEditor();
   const [newText, setNewText] = useState("");
+  const [isAiGenerating, setIsAiGenerating] = useState(false);
+
+  const handleAiGen = async () => {
+    setIsAiGenerating(true);
+    await generateAISubtitles();
+    setIsAiGenerating(false);
+  };
 
   const addSubtitle = () => {
     if (!newText.trim()) return;
@@ -44,6 +53,17 @@ export function VideoSubtitlePanel({ onApplySubtitles }: { onApplySubtitles: () 
         <p className="text-[11px] text-neutral-500 mt-1">
           Add timed text to your video.
         </p>
+
+        <Button
+          size="sm"
+          variant="secondary"
+          onClick={handleAiGen}
+          disabled={isAiGenerating}
+          className="w-full mt-4 bg-indigo-600/10 hover:bg-indigo-600/20 border border-indigo-500/20 text-indigo-400 gap-2 h-9 text-xs font-bold"
+        >
+          <Sparkles className={`w-3.5 h-3.5 ${isAiGenerating ? 'animate-pulse' : ''}`} />
+          {isAiGenerating ? "Generating..." : "AI Generate Subtitles"}
+        </Button>
       </div>
 
       <div className="p-4 space-y-4 flex-1 overflow-y-auto custom-scrollbar">

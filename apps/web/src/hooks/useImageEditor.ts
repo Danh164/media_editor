@@ -43,10 +43,13 @@ export function useImageEditor() {
     fabricCanvas.on("object:modified", onObjectModified);
     fabricCanvas.on("object:added", onObjectAdded);
 
-    // Double click to replace slot image
-    fabricCanvas.on("mouse:dblclick", (options) => {
+    // Single click to replace slot image
+    fabricCanvas.on("mouse:down", (options) => {
       const target = options.target;
       if (target && (target as any).isSlot) {
+        // Prevent default selection behavior to focus on the upload
+        fabricCanvas.discardActiveObject();
+        
         // Trigger file picker
         const input = document.createElement('input');
         input.type = 'file';

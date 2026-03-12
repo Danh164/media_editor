@@ -470,5 +470,61 @@ export function useVideoEditor() {
     addAudioTrack,
     burnText,
     burnSubtitles,
+    generateAISubtitles: async () => {
+      const { videoUrl, videoExt, setIsProcessing, setProgress, setSubtitles } = useVideoStore.getState();
+      if (!videoUrl || !ffmpegRef.current) return;
+
+      setIsProcessing(true);
+      setProgress(0);
+      const ffmpeg = ffmpegRef.current;
+      const { fetchFile } = window.FFmpeg;
+
+      try {
+        const ext = videoExt || "mp4";
+        const inputName = `input.${ext}`;
+        const audioOutputName = "audio_extract.mp3";
+
+        // Write video
+        ffmpeg.FS("writeFile", inputName, await fetchFile(videoUrl));
+        
+        try { ffmpeg.FS("unlink", audioOutputName); } catch {}
+
+        // Extract audio as MP3
+        // -vn: no video, -acodec libmp3lame: mp3 codec, -q:a 2: variable bitrate quality
+        await ffmpeg.run(
+          "-y",
+          "-i", inputName,
+          "-vn",
+          "-acodec", "libmp3lame",
+          "-q:a", "2",
+          audioOutputName
+        );
+
+        const audioData = ffmpeg.FS("readFile", audioOutputName);
+        const audioBlob = new Blob([audioData], { type: "audio/mpeg" });
+        const formData = new FormData();
+        formData.append("file", audioBlob, "audio.mp3");
+
+        // Send to API
+        const response = await fetch("http://localhost:4000/api/transcribe", {
+          method: "POST",
+          body: formData,
+        });
+
+        if (!response.ok) throw new Error("Transcription failed");
+
+        const result = await response.json();
+        if (result.subtitles) {
+          setSubtitles(result.subtitles);
+          toast.success("AI Subtitles generated successfully!");
+        }
+      } catch (error: any) {
+        console.error("AI Subtitles error:", error);
+        toast.error("AI Subtitle generation failed!");
+      } finally {
+        setIsProcessing(false);
+        setProgress(0);
+      }
+    }
   };
 }

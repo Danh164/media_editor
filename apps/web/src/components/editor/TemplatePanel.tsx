@@ -59,25 +59,25 @@ export function TemplatePanel() {
       const w = canvas.width! / 2;
       const h = canvas.height!;
       const collageId = `collage-${Date.now()}`;
-      createSlot(0, 0, w, h, "#374151", "Slot 1", `${collageId}-1`);
-      createSlot(w, 0, w, h, "#4b5563", "Slot 2", `${collageId}-2`);
+      createSlot(0, 0, w, h, "#262626", "Slot 1", `${collageId}-1`);
+      createSlot(w, 0, w, h, "#404040", "Slot 2", `${collageId}-2`);
     } else if (id === "collage-3") {
       // 3-Grid (1 big top, 2 small bottom)
       const w = canvas.width!;
       const h = canvas.height! / 2;
       const collageId = `collage-${Date.now()}`;
-      createSlot(0, 0, w, h, "#374151", "Slot 1", `${collageId}-1`);
-      createSlot(0, h, w / 2, h, "#4b5563", "Slot 2", `${collageId}-2`);
-      createSlot(w / 2, h, w / 2, h, "#6b7280", "Slot 3", `${collageId}-3`);
+      createSlot(0, 0, w, h, "#262626", "Slot 1", `${collageId}-1`);
+      createSlot(0, h, w / 2, h, "#404040", "Slot 2", `${collageId}-2`);
+      createSlot(w / 2, h, w / 2, h, "#525252", "Slot 3", `${collageId}-3`);
     } else if (id === "collage-4") {
       // 4-Quarter
       const w = canvas.width! / 2;
       const h = canvas.height! / 2;
       const collageId = `collage-${Date.now()}`;
-      createSlot(0, 0, w, h, "#374151", "Slot 1", `${collageId}-1`);
-      createSlot(w, 0, w, h, "#4b5563", "Slot 2", `${collageId}-2`);
-      createSlot(0, h, w, h, "#6b7280", "Slot 3", `${collageId}-3`);
-      createSlot(w, h, w, h, "#9ca3af", "Slot 4", `${collageId}-4`);
+      createSlot(0, 0, w, h, "#262626", "Slot 1", `${collageId}-1`);
+      createSlot(w, 0, w, h, "#404040", "Slot 2", `${collageId}-2`);
+      createSlot(0, h, w, h, "#525252", "Slot 3", `${collageId}-3`);
+      createSlot(w, h, w, h, "#737373", "Slot 4", `${collageId}-4`);
     }
     
     canvas.renderAll();
@@ -93,9 +93,11 @@ export function TemplatePanel() {
       height,
       fill: color,
       stroke: "#ffffff",
-      strokeWidth: 1,
-      opacity: 0.8,
+      strokeWidth: 2,
+      opacity: 1,
       selectable: true,
+      hasControls: false, // Don't allow resizing slots individually
+      hasBorders: true,
       hoverCursor: "pointer",
     });
     
