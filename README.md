@@ -79,15 +79,18 @@ editor/
 
 ```bash
 # 1. Clone the repo
-git clone https://github.com/your-username/editor.git
-cd editor
+git clone https://github.com/Danh164/media_editor.git
+cd media_editor
 
-# 2. Install dependencies
-cd apps/web
-npm install
+# 2. Install dependencies (root)
+make install
 
-# 3. Start the dev server
-npm run dev
+# 3. Start development servers
+# Terminal 1: Frontend
+make dev-web
+
+# Terminal 2: API
+make dev-api
 ```
 
 Open [http://localhost:3000](http://localhost:3000) in your browser.
