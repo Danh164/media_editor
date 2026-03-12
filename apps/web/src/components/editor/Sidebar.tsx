@@ -7,29 +7,11 @@ import { useRef } from "react";
 import { useEditorStore } from "@/stores/editorStore";
 import { useVideoStore, VideoSidebarPanel } from "@/stores/videoStore";
 import { useVideoEditor } from "@/hooks/useVideoEditor";
+import { useTranslations } from "next-intl";
 
 interface SidebarProps {
   mode: "image" | "video";
 }
-
-const imageModeTools = [
-  { id: "upload", icon: Upload, label: "Upload Image" },
-  { id: "crop", icon: Crop, label: "Crop & Resize" },
-  { id: "filter", icon: Filter, label: "Filters" },
-  { id: "text", icon: Type, label: "Add Text" },
-  { id: "shapes", icon: Shapes, label: "Shapes" },
-  { id: "draw", icon: Pen, label: "Draw" },
-  { id: "templates", icon: Layout, label: "Templates" },
-  { id: "removeBg", icon: Wand2, label: "Remove BG" },
-];
-
-const videoModeTools: { id: VideoSidebarPanel | "uploadVideo"; icon: typeof Scissors; label: string }[] = [
-  { id: "uploadVideo", icon: Upload, label: "Upload Video" },
-  { id: "trim", icon: Scissors, label: "Trim & Cut" },
-  { id: "audio", icon: Music, label: "Add Audio" },
-  { id: "text", icon: Type, label: "Add Text" },
-  { id: "subtitle", icon: VideoIcon, label: "Subtitles" },
-];
 
 export function Sidebar({ mode }: SidebarProps) {
   const { activeTool, setActiveTool } = useEditorStore();
@@ -37,6 +19,26 @@ export function Sidebar({ mode }: SidebarProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
   const { handleFileUpload } = useVideoEditor();
+  const t = useTranslations("editor.tools");
+
+  const imageModeTools = [
+    { id: "upload", icon: Upload, label: t("uploadImage") },
+    { id: "crop", icon: Crop, label: t("crop") },
+    { id: "filter", icon: Filter, label: t("filter") },
+    { id: "text", icon: Type, label: t("text") },
+    { id: "shapes", icon: Shapes, label: t("shapes") },
+    { id: "draw", icon: Pen, label: t("draw") },
+    { id: "templates", icon: Layout, label: t("templates") },
+    { id: "removeBg", icon: Wand2, label: t("removeBg") },
+  ];
+
+  const videoModeTools: { id: VideoSidebarPanel | "uploadVideo"; icon: typeof Scissors; label: string }[] = [
+    { id: "uploadVideo", icon: Upload, label: t("uploadVideo") },
+    { id: "trim", icon: Scissors, label: t("trim") },
+    { id: "audio", icon: Music, label: t("audio") },
+    { id: "text", icon: Type, label: t("text") },
+    { id: "subtitle", icon: VideoIcon, label: t("subtitle") },
+  ];
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

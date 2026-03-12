@@ -51,6 +51,8 @@
       "filter": "Filters",
       "text": "Add Text",
       "draw": "Draw",
+      "shapes": "Shapes",
+      "templates": "Templates",
       "removeBg": "Remove BG",
       "upscale": "Upscale",
       "uploadVideo": "Upload Video",
