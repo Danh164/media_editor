@@ -441,8 +441,15 @@ export function useVideoEditor() {
       if (videoUrl) URL.revokeObjectURL(videoUrl);
       setVideoUrl(url);
       
-      // Chain
+      // Finalize and Reset for next overlay
       ffmpeg.FS("writeFile", inputName, data);
+      
+      const { setOverlayText, setOverlayStartTime, setOverlayEndTime } = useVideoStore.getState();
+      setOverlayText("");
+      // Keep end time as a default for duration of next text or reset to 5s
+      setOverlayStartTime(0);
+      setOverlayEndTime(5);
+
       toast.success("Text burned successfully!");
     } catch (error: any) {
       console.error(error);

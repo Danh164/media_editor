@@ -39,6 +39,34 @@ export function VideoEditor() {
 
   const [isDraggingText, setIsDraggingText] = useState(false);
 
+  // Smooth dragging logic using window events
+  useEffect(() => {
+    if (!isDraggingText) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const container = document.getElementById("video-preview-container");
+      if (!container) return;
+      
+      const rect = container.getBoundingClientRect();
+      const x = ((e.clientX - rect.left) / rect.width) * 100;
+      const y = ((e.clientY - rect.top) / rect.height) * 100;
+      
+      setOverlayX(Math.max(0, Math.min(100, x)));
+      setOverlayY(Math.max(0, Math.min(100, y)));
+    };
+
+    const handleMouseUp = () => {
+      setIsDraggingText(false);
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [isDraggingText, setOverlayX, setOverlayY]);
+
   /* Hook moved below for consolidated destructuring */
 
   const togglePlay = () => {
@@ -124,12 +152,15 @@ export function VideoEditor() {
   const { trimVideo, addAudioTrack, burnText, burnSubtitles } = useVideoEditor();
 
   return (
-    <div className="flex flex-1 h-full overflow-hidden">
+    <div className={`flex flex-1 h-full overflow-hidden ${isDraggingText ? 'select-none' : ''}`}>
       {/* Main editor column */}
       <div className="flex flex-col flex-1 h-full bg-[#0a0a0a] min-w-0">
         {/* Video Preview */}
         <div className="flex-1 flex items-center justify-center p-6 bg-neutral-950/50 min-h-0">
-          <div className="aspect-video w-full max-w-4xl bg-black rounded-xl shadow-2xl overflow-hidden border border-neutral-800 flex items-center justify-center relative group">
+          <div 
+            id="video-preview-container"
+            className="aspect-video w-full max-w-4xl bg-black rounded-xl shadow-2xl overflow-hidden border border-neutral-800 flex items-center justify-center relative group"
+          >
             {isProcessing ? (
               <div className="flex flex-col items-center gap-4 text-neutral-400">
                 <div className="relative w-16 h-16">
@@ -180,25 +211,12 @@ export function VideoEditor() {
                 {/* Interactive Text Overlay Preview */}
                 {activeSidebarPanel === "text" && 
                  overlayText && 
-                 currentTime >= overlayStartTime && 
-                 currentTime <= overlayEndTime && (
-                  <div 
-                    className="absolute inset-0 z-10 overflow-hidden pointer-events-none"
-                    onMouseMove={(e) => {
-                      if (!isDraggingText) return;
-                      const rect = e.currentTarget.getBoundingClientRect();
-                      const x = ((e.clientX - rect.left) / rect.width) * 100;
-                      const y = ((e.clientY - rect.top) / rect.height) * 100;
-                      setOverlayX(Math.max(0, Math.min(100, x)));
-                      setOverlayY(Math.max(0, Math.min(100, y)));
-                    }}
-                    onMouseUp={() => setIsDraggingText(false)}
-                    onMouseLeave={() => setIsDraggingText(false)}
-                  >
+                 (currentTime >= overlayStartTime && currentTime <= overlayEndTime) && (
                     <div
-                      className={`absolute cursor-move pointer-events-auto select-none whitespace-nowrap active:scale-95 transition-all duration-300
+                      className={`absolute cursor-move pointer-events-auto select-none whitespace-nowrap active:scale-95 transition-all duration-300 z-20
                         ${overlayEffect === 'fade' ? 'animate-in fade-in fill-mode-both' : ''}
                         ${overlayEffect === 'zoom' ? 'animate-in zoom-in fill-mode-both' : ''}
+                        ${isDraggingText ? 'ring-2 ring-indigo-500 ring-offset-2 ring-offset-black rounded px-1' : ''}
                       `}
                       style={{
                         left: `${overlayX}%`,
@@ -215,8 +233,12 @@ export function VideoEditor() {
                       }}
                     >
                       {overlayText}
+                      {isDraggingText && (
+                        <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-indigo-600 text-[10px] px-1.5 py-0.5 rounded text-white font-bold animate-pulse">
+                          Dragging
+                        </div>
+                      )}
                     </div>
-                  </div>
                 )}
               </>
             ) : (

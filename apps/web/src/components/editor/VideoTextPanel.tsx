@@ -3,7 +3,7 @@
 import { useVideoStore } from "@/stores/videoStore";
 import { Button } from "@/components/ui/button";
 import { useTranslations } from "next-intl";
-import { Type, Palette, Type as FontIcon } from "lucide-react";
+import { Type, Palette, Type as FontIcon, RotateCcw } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 
 interface VideoTextPanelProps {
@@ -130,13 +130,27 @@ export function VideoTextPanel({ onApplyText }: VideoTextPanelProps) {
       </div>
 
       <div className="mt-auto space-y-3 pt-4 border-t border-neutral-800">
-        <Button
-          onClick={onApplyText}
-          disabled={!videoUrl || !overlayText.trim()}
-          className="w-full bg-indigo-600 hover:bg-indigo-700 text-white gap-2 h-10"
-        >
-          Burn Text to Video
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={() => {
+              setOverlayText("");
+              setOverlayStartTime(0);
+              setOverlayEndTime(5);
+              setOverlayEffect('none');
+            }}
+            className="flex-1 bg-transparent border-neutral-800 hover:bg-neutral-900 text-neutral-400 gap-2 h-10"
+          >
+            <RotateCcw className="w-3.5 h-3.5" /> Reset
+          </Button>
+          <Button
+            onClick={onApplyText}
+            disabled={!videoUrl || !overlayText.trim()}
+            className="flex-[2] bg-indigo-600 hover:bg-indigo-700 text-white gap-2 h-10"
+          >
+            Burn Text to Video
+          </Button>
+        </div>
         {!videoUrl && (
           <p className="text-[10px] text-center text-red-400">Upload a video first.</p>
         )}
