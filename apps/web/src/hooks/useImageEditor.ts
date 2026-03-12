@@ -7,7 +7,7 @@ import { useEditorStore } from "@/stores/editorStore";
 export function useImageEditor() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const { setCanvas, canvas, setActiveObject, pushHistory, activeTool, strokeWidth, strokeColor, undo, redo } = useEditorStore();
+  const { setCanvas, canvas, setActiveObject, pushHistory, activeTool, strokeWidth, strokeColor, undo, redo, zoom, setZoom } = useEditorStore();
 
   useEffect(() => {
     if (!canvasRef.current || !containerRef.current) return;
@@ -22,6 +22,7 @@ export function useImageEditor() {
     });
 
     setCanvas(fabricCanvas);
+    setZoom(1);
 
     // Save initial state
     pushHistory(fabricCanvas.toJSON() as any);
@@ -68,6 +69,19 @@ export function useImageEditor() {
         input.click();
       }
     });
+    // Mouse wheel zoom
+    fabricCanvas.on("mouse:wheel", (opt) => {
+      const delta = opt.e.deltaY;
+      let newZoom = fabricCanvas.getZoom();
+      newZoom *= 0.999 ** delta;
+      if (newZoom > 20) newZoom = 20;
+      if (newZoom < 0.01) newZoom = 0.01;
+      
+      fabricCanvas.zoomToPoint({ x: opt.e.offsetX, y: opt.e.offsetY } as any, newZoom);
+      setZoom(newZoom);
+      opt.e.preventDefault();
+      opt.e.stopPropagation();
+    });
 
     // Basic keyboard shortcuts
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -97,6 +111,19 @@ export function useImageEditor() {
       if (!isMac && cmdKey && e.key.toLowerCase() === 'y') {
         e.preventDefault();
         redo();
+      }
+      // 3. Zoom Shortcuts
+      if (cmdKey && (e.key === "=" || e.key === "+")) {
+        e.preventDefault();
+        zoomTo(zoom * 1.2);
+      }
+      if (cmdKey && e.key === "-") {
+        e.preventDefault();
+        zoomTo(zoom * 0.8);
+      }
+      if (cmdKey && e.key === "0") {
+        e.preventDefault();
+        zoomTo(1);
       }
     };
 
@@ -268,18 +295,27 @@ export function useImageEditor() {
       });
       img.set({ clipPath: clipRect });
 
-      // 4. Mark image as part of this slot
-      (img as any).isSlotImage = true;
       (img as any).parentSlotId = slotId;
+      (img as any).ignoreHistory = true;
 
-      canvas.add(img);
-      canvas.sendObjectToBack(img); 
+      // 4. Stacking: Insert just behind the slot
+      // 4. Stacking: Insert behind the slot
+      const existingObjects = canvas.getObjects();
+      const slotIndex = existingObjects.indexOf(slot);
       
+      if (slotIndex !== -1) {
+        canvas.insertAt(slotIndex, img);
+      } else {
+        canvas.add(img);
+      }
+
       // Make slot semi-transparent to see the image but still selectable
       slot.set({ fill: "transparent", stroke: "rgba(99, 102, 241, 0.5)" });
       
       canvas.renderAll();
       pushHistory(canvas.toJSON() as any);
+    }).catch(err => {
+      console.error("Fill slot error:", err);
     });
   }, [canvas, pushHistory]);
 
@@ -310,7 +346,11 @@ export function useImageEditor() {
     window.addEventListener("editor:addTriangle", onAddTriangle);
     window.addEventListener("editor:addStar", onAddStar);
     window.addEventListener("editor:addImage", onAddImage);
-    window.addEventListener("editor:fillSlot", onFillSlot);
+    
+    const onApplyTemplate = () => {
+      resetViewport();
+    };
+    window.addEventListener("editor:applyTemplate", onApplyTemplate);
 
     return () => {
       window.removeEventListener("editor:addText", onAddText);
@@ -319,9 +359,24 @@ export function useImageEditor() {
       window.removeEventListener("editor:addTriangle", onAddTriangle);
       window.removeEventListener("editor:addStar", onAddStar);
       window.removeEventListener("editor:addImage", onAddImage);
+      window.removeEventListener("editor:applyTemplate", onApplyTemplate);
       window.removeEventListener("editor:fillSlot", onFillSlot);
     };
   }, [addText, addRectangle, addCircle, addTriangle, addStar, addImage]);
+
+  const zoomTo = useCallback((level: number) => {
+    if (!canvas) return;
+    let newLevel = Math.max(0.01, Math.min(20, level));
+    canvas.zoomToPoint({ x: canvas.width! / 2, y: canvas.height! / 2 } as any, newLevel);
+    setZoom(newLevel);
+  }, [canvas, setZoom]);
+
+  const resetViewport = useCallback(() => {
+    if (!canvas) return;
+    canvas.setViewportTransform([1, 0, 0, 1, 0, 0]);
+    setZoom(1);
+    canvas.renderAll();
+  }, [canvas, setZoom]);
 
   return {
     canvasRef,
@@ -332,6 +387,8 @@ export function useImageEditor() {
     addTriangle,
     addStar,
     clearCanvas,
+    zoomTo,
+    resetViewport,
   };
 }
 

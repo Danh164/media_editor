@@ -30,6 +30,18 @@ interface VideoState {
   setActiveSidebarPanel: (panel: VideoSidebarPanel) => void;
   audioUrl: string | null;
   setAudioUrl: (url: string | null) => void;
+  originalAudioVolume: number;
+  setOriginalAudioVolume: (volume: number) => void;
+  bgAudioVolume: number;
+  setBgAudioVolume: (volume: number) => void;
+  bgAudioStartTime: number;
+  setBgAudioStartTime: (time: number) => void;
+  bgAudioDuration: number;
+  setBgAudioDuration: (duration: number) => void;
+  bgAudioTrimStart: number;
+  setBgAudioTrimStart: (time: number) => void;
+  bgAudioTrimEnd: number;
+  setBgAudioTrimEnd: (time: number) => void;
   videoExt: string | null;
   setVideoExt: (ext: string | null) => void;
   videoWidth: number;
@@ -55,9 +67,18 @@ interface VideoState {
   overlayEffect: 'none' | 'fade' | 'zoom';
   setOverlayEffect: (effect: 'none' | 'fade' | 'zoom') => void;
 
-  // Subtitles
   subtitles: Subtitle[];
   setSubtitles: (subs: Subtitle[] | ((prev: Subtitle[]) => Subtitle[])) => void;
+  
+  // Subtitle Styling
+  subtitleFontSize: number;
+  setSubtitleFontSize: (size: number) => void;
+  subtitleColor: string;
+  setSubtitleColor: (color: string) => void;
+  subtitleBgColor: string;
+  setSubtitleBgColor: (color: string) => void;
+  subtitlePosition: 'top' | 'middle' | 'bottom';
+  setSubtitlePosition: (pos: 'top' | 'middle' | 'bottom') => void;
 }
 
 export const useVideoStore = create<VideoState>((set) => ({
@@ -81,6 +102,18 @@ export const useVideoStore = create<VideoState>((set) => ({
   setActiveSidebarPanel: (panel) => set({ activeSidebarPanel: panel }),
   audioUrl: null,
   setAudioUrl: (url) => set({ audioUrl: url }),
+  originalAudioVolume: 1.0,
+  setOriginalAudioVolume: (volume) => set({ originalAudioVolume: volume }),
+  bgAudioVolume: 1.0,
+  setBgAudioVolume: (volume) => set({ bgAudioVolume: volume }),
+  bgAudioStartTime: 0,
+  setBgAudioStartTime: (time) => set({ bgAudioStartTime: time }),
+  bgAudioDuration: 0,
+  setBgAudioDuration: (bgAudioDuration) => set({ bgAudioDuration }),
+  bgAudioTrimStart: 0,
+  setBgAudioTrimStart: (time) => set({ bgAudioTrimStart: time }),
+  bgAudioTrimEnd: 0,
+  setBgAudioTrimEnd: (time) => set({ bgAudioTrimEnd: time }),
   videoExt: null,
   setVideoExt: (ext) => set({ videoExt: ext }),
   videoWidth: 0,
@@ -109,5 +142,14 @@ export const useVideoStore = create<VideoState>((set) => ({
   setSubtitles: (subs) => set((state) => ({ 
     subtitles: typeof subs === 'function' ? subs(state.subtitles) : subs 
   })),
+
+  subtitleFontSize: 24,
+  setSubtitleFontSize: (subtitleFontSize) => set({ subtitleFontSize }),
+  subtitleColor: "#ffffff",
+  setSubtitleColor: (subtitleColor) => set({ subtitleColor }),
+  subtitleBgColor: "transparent",
+  setSubtitleBgColor: (subtitleBgColor) => set({ subtitleBgColor }),
+  subtitlePosition: 'bottom',
+  setSubtitlePosition: (subtitlePosition) => set({ subtitlePosition }),
 }));
 

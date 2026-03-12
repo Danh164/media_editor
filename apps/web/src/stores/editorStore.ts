@@ -36,6 +36,10 @@ interface EditorState {
   setStrokeColor: (color: string) => void;
   strokeWidth: number;
   setStrokeWidth: (width: number) => void;
+  
+  // Viewport
+  zoom: number;
+  setZoom: (zoom: number) => void;
 }
 
 export const useEditorStore = create<EditorState>((set, get) => ({
@@ -120,4 +124,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   
   strokeWidth: 2,
   setStrokeWidth: (width) => set({ strokeWidth: width }),
+
+  zoom: 1,
+  setZoom: (zoom) => set({ zoom }),
 }));

@@ -11,19 +11,35 @@ interface AudioPanelProps {
 }
 
 export function AudioPanel({ onAddAudio }: AudioPanelProps) {
-  const { audioUrl, setAudioUrl, isProcessing, videoUrl } = useVideoStore();
+  const { 
+    audioUrl, setAudioUrl, isProcessing, videoUrl,
+    originalAudioVolume, setOriginalAudioVolume,
+    bgAudioVolume, setBgAudioVolume,
+    bgAudioStartTime, setBgAudioStartTime,
+    bgAudioTrimStart, setBgAudioTrimStart,
+    bgAudioTrimEnd, setBgAudioTrimEnd,
+    bgAudioDuration, setBgAudioDuration
+  } = useVideoStore();
   const t = useTranslations("editor");
   const audioInputRef = useRef<HTMLInputElement>(null);
   const [audioName, setAudioName] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [volumeRatio, setVolumeRatio] = useState(1);
-  const [startTime, setStartTime] = useState(0);
 
   const handleAudioSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     setAudioName(file.name);
     setSelectedFile(file);
+
+    // Get duration
+    const tempAudio = document.createElement('audio');
+    tempAudio.src = URL.createObjectURL(file);
+    tempAudio.onloadedmetadata = () => {
+      setBgAudioDuration(tempAudio.duration);
+      setBgAudioTrimStart(0);
+      setBgAudioTrimEnd(tempAudio.duration);
+    };
+
     // Create preview URL
     if (audioUrl) URL.revokeObjectURL(audioUrl);
     setAudioUrl(URL.createObjectURL(file));
@@ -38,7 +54,7 @@ export function AudioPanel({ onAddAudio }: AudioPanelProps) {
 
   const handleApply = async () => {
     if (!selectedFile) return;
-    await onAddAudio(selectedFile, volumeRatio, startTime);
+    await onAddAudio(selectedFile, bgAudioVolume, bgAudioStartTime);
   };
 
   return (
@@ -88,39 +104,125 @@ export function AudioPanel({ onAddAudio }: AudioPanelProps) {
             onChange={handleAudioSelect}
           />
 
-          {/* Volume control */}
-          <div className="space-y-1.5">
+          {/* Original Volume control */}
+          <div className="space-y-1.5 pt-2 border-t border-neutral-800">
             <div className="flex items-center justify-between">
               <label className="text-[10px] text-neutral-500 uppercase tracking-wider flex items-center gap-1">
-                <Volume2 className="w-3 h-3" />
-                {t("audio.volume")}
+                <Volume2 className="w-3 h-3 text-neutral-500" />
+                Original Video Volume
               </label>
-              <span className="text-[10px] text-neutral-400 font-mono">{Math.round(volumeRatio * 100)}%</span>
+              <span className="text-[10px] text-neutral-400 font-mono">{Math.round(originalAudioVolume * 100)}%</span>
             </div>
             <input
               type="range"
               min={0}
               max={2}
               step={0.05}
-              value={volumeRatio}
-              onChange={(e) => setVolumeRatio(parseFloat(e.target.value))}
+              value={originalAudioVolume}
+              onChange={(e) => setOriginalAudioVolume(parseFloat(e.target.value))}
+              className="w-full accent-neutral-600"
+            />
+          </div>
+
+          {/* Background Volume control */}
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <label className="text-[10px] text-neutral-500 uppercase tracking-wider flex items-center gap-1">
+                <Music className="w-3 h-3 text-indigo-400" />
+                {t("audio.volume")} (Background)
+              </label>
+              <span className="text-[10px] text-indigo-400 font-mono">{Math.round(bgAudioVolume * 100)}%</span>
+            </div>
+            <input
+              type="range"
+              min={0}
+              max={2}
+              step={0.05}
+              value={bgAudioVolume}
+              onChange={(e) => setBgAudioVolume(parseFloat(e.target.value))}
               className="w-full accent-indigo-500"
             />
           </div>
 
-          {/* Start Time control */}
-          <div className="space-y-1.5">
-            <label className="text-[10px] text-neutral-500 uppercase tracking-wider">
-              Start Time (seconds)
-            </label>
-            <input
-              type="number"
-              min={0}
-              step={0.1}
-              value={startTime}
-              onChange={(e) => setStartTime(parseFloat(e.target.value) || 0)}
-              className="w-full bg-neutral-900 border border-neutral-700 rounded px-2 py-1 text-xs text-white"
-            />
+          {/* Audio Info & Visual Trimmer */}
+          <div className="space-y-3 px-1">
+            <div className="flex justify-between items-center text-[10px] text-neutral-500 font-mono">
+              <span>Total: {bgAudioDuration.toFixed(1)}s</span>
+              <span className="text-indigo-400 font-semibold tracking-tight">Active: {(bgAudioTrimEnd - bgAudioTrimStart).toFixed(1)}s</span>
+            </div>
+            
+            <div className="h-1.5 w-full bg-neutral-900 rounded-full overflow-hidden border border-neutral-800/50">
+              <div
+                className="h-full bg-indigo-500/80 shadow-[0_0_8px_rgba(99,102,241,0.4)] transition-all duration-300"
+                style={{
+                  marginLeft: `${(bgAudioTrimStart / (bgAudioDuration || 1)) * 100}%`,
+                  width: `${((bgAudioTrimEnd - bgAudioTrimStart) / (bgAudioDuration || 1)) * 100}%`,
+                }}
+              />
+            </div>
+          </div>
+
+          <div className="h-px bg-neutral-800/50 my-2" />
+
+          {/* Segment selection (Internal Audio Timing) */}
+          <div className="space-y-3">
+            <h4 className="text-[10px] text-neutral-500 uppercase tracking-[0.15em] font-bold">Select Segment</h4>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="text-[10px] text-neutral-400 flex items-center gap-1 font-medium">
+                  Play From (s)
+                </label>
+                <input
+                  type="number"
+                  min={0}
+                  max={bgAudioDuration}
+                  step={0.1}
+                  value={bgAudioTrimStart.toFixed(1)}
+                  onChange={(e) => {
+                    const val = parseFloat(e.target.value) || 0;
+                    setBgAudioTrimStart(Math.max(0, Math.min(val, bgAudioTrimEnd - 0.1)));
+                  }}
+                  className="w-full bg-[#111] border border-neutral-800 rounded-lg px-3 py-2 text-xs text-indigo-100 focus:ring-1 focus:ring-indigo-500 transition-all outline-none"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-[10px] text-neutral-400 flex items-center gap-1 font-medium">
+                   Play Until (s)
+                </label>
+                <input
+                  type="number"
+                  min={bgAudioTrimStart + 0.1}
+                  max={bgAudioDuration}
+                  step={0.1}
+                  value={bgAudioTrimEnd.toFixed(1)}
+                  onChange={(e) => {
+                    const val = parseFloat(e.target.value) || 0;
+                    setBgAudioTrimEnd(Math.max(bgAudioTrimStart + 0.1, Math.min(val, bgAudioDuration)));
+                  }}
+                  className="w-full bg-[#111] border border-neutral-800 rounded-lg px-3 py-2 text-xs text-indigo-100 focus:ring-1 focus:ring-indigo-500 transition-all outline-none"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="h-px bg-neutral-800/50 my-2" />
+
+          {/* Placement control (Project-level Start Time) */}
+          <div className="space-y-2">
+            <h4 className="text-[10px] text-neutral-500 uppercase tracking-[0.15em] font-bold">Placement</h4>
+            <div className="space-y-1.5">
+              <label className="text-[10px] text-neutral-400 flex items-center gap-1 font-medium">
+                Start at in Video (s)
+              </label>
+              <input
+                type="number"
+                min={0}
+                step={0.1}
+                value={bgAudioStartTime.toFixed(1)}
+                onChange={(e) => setBgAudioStartTime(Math.max(0, parseFloat(e.target.value) || 0))}
+                className="w-full bg-[#111] border border-neutral-800 rounded-lg px-3 py-2 text-xs text-white focus:ring-1 focus:ring-indigo-500 transition-all outline-none shine-on-focus"
+              />
+            </div>
           </div>
 
           {audioUrl && (

@@ -18,17 +18,23 @@ export function TemplatePanel() {
   const applyTemplate = (id: string) => {
     if (!canvas) return;
     
-    // Clear existing frames if any
-    const existingFrames = canvas.getObjects().filter(obj => (obj as any).isFrame);
-    existingFrames.forEach(f => canvas.remove(f));
+    // Dispatch event to reset viewport in useImageEditor
+    window.dispatchEvent(new CustomEvent("editor:applyTemplate"));
+    
+    const width = canvas.getWidth();
+    const height = canvas.getHeight();
+
+    // Clear existing frames or slots
+    const existingObjects = canvas.getObjects().filter(obj => (obj as any).isFrame || (obj as any).isSlot || (obj as any).isSlotImage);
+    existingObjects.forEach(obj => canvas.remove(obj));
 
     if (id === "frame-1") {
       // Classic Border
       const frame = new Rect({
         left: 0,
         top: 0,
-        width: canvas.width,
-        height: canvas.height,
+        width: width,
+        height: height,
         fill: "transparent",
         stroke: "#000000",
         strokeWidth: 40,
@@ -43,8 +49,8 @@ export function TemplatePanel() {
       const frame = new Rect({
         left: 0,
         top: 0,
-        width: canvas.width,
-        height: canvas.height,
+        width: width,
+        height: height,
         fill: "transparent",
         stroke: "#ffffff",
         strokeWidth: 100,
@@ -56,23 +62,23 @@ export function TemplatePanel() {
       canvas.sendObjectToBack(frame);
     } else if (id === "collage-2") {
       // 2-Split Vertical
-      const w = canvas.width! / 2;
-      const h = canvas.height!;
+      const w = width / 2;
+      const h = height;
       const collageId = `collage-${Date.now()}`;
       createSlot(0, 0, w, h, "#262626", "Slot 1", `${collageId}-1`);
       createSlot(w, 0, w, h, "#404040", "Slot 2", `${collageId}-2`);
     } else if (id === "collage-3") {
       // 3-Grid (1 big top, 2 small bottom)
-      const w = canvas.width!;
-      const h = canvas.height! / 2;
+      const w = width;
+      const h = height / 2;
       const collageId = `collage-${Date.now()}`;
       createSlot(0, 0, w, h, "#262626", "Slot 1", `${collageId}-1`);
       createSlot(0, h, w / 2, h, "#404040", "Slot 2", `${collageId}-2`);
       createSlot(w / 2, h, w / 2, h, "#525252", "Slot 3", `${collageId}-3`);
     } else if (id === "collage-4") {
       // 4-Quarter
-      const w = canvas.width! / 2;
-      const h = canvas.height! / 2;
+      const w = width / 2;
+      const h = height / 2;
       const collageId = `collage-${Date.now()}`;
       createSlot(0, 0, w, h, "#262626", "Slot 1", `${collageId}-1`);
       createSlot(w, 0, w, h, "#404040", "Slot 2", `${collageId}-2`);
@@ -120,12 +126,58 @@ export function TemplatePanel() {
           <button
             key={tpl.id}
             onClick={() => applyTemplate(tpl.id)}
-            className="w-full aspect-video bg-neutral-900 rounded-xl border border-neutral-800 hover:border-indigo-500 hover:bg-neutral-800/50 transition-all flex flex-col items-center justify-center gap-2 group"
+            className="w-full bg-neutral-900/50 rounded-2xl border border-neutral-800/50 hover:border-indigo-500/50 hover:bg-indigo-500/5 transition-all p-3 flex flex-col items-center gap-3 group"
           >
-            <div className="w-10 h-10 rounded-lg bg-neutral-800 flex items-center justify-center group-hover:bg-indigo-500/10 transition-colors">
-               <Frame className="w-5 h-5 text-neutral-500 group-hover:text-indigo-400" />
+            {/* Visual Preview */}
+            <div className="w-full aspect-[4/3] rounded-lg bg-neutral-900 border border-neutral-800 overflow-hidden flex relative shadow-inner">
+              {tpl.id === "frame-1" && (
+                <div className="absolute inset-2 border-2 border-neutral-600 rounded-sm" />
+              )}
+              {tpl.id === "frame-3" && (
+                <div className="absolute inset-0 border-[10px] border-white/90 border-b-[24px]" />
+              )}
+              {tpl.id === "collage-2" && (
+                <div className="flex w-full h-full gap-px bg-neutral-800">
+                  <div className="flex-1 bg-neutral-700/50 flex items-center justify-center">
+                    <ImageIcon className="w-3 h-3 text-neutral-600" />
+                  </div>
+                  <div className="flex-1 bg-neutral-700 flex items-center justify-center">
+                     <ImageIcon className="w-3 h-3 text-neutral-600" />
+                  </div>
+                </div>
+              )}
+              {tpl.id === "collage-3" && (
+                <div className="flex flex-col w-full h-full gap-px bg-neutral-800">
+                  <div className="flex-1 bg-neutral-700/50 flex items-center justify-center">
+                    <ImageIcon className="w-3 h-3 text-neutral-600" />
+                  </div>
+                  <div className="flex-1 flex gap-px">
+                     <div className="flex-1 bg-neutral-700 flex items-center justify-center">
+                        <ImageIcon className="w-3 h-3 text-neutral-600" />
+                     </div>
+                     <div className="flex-1 bg-neutral-700/50 flex items-center justify-center">
+                        <ImageIcon className="w-3 h-3 text-neutral-600" />
+                     </div>
+                  </div>
+                </div>
+              )}
+              {tpl.id === "collage-4" && (
+                <div className="grid grid-cols-2 grid-rows-2 w-full h-full gap-px bg-neutral-800">
+                  {[1,2,3,4].map(i => (
+                    <div key={i} className="bg-neutral-700/50 flex items-center justify-center">
+                       <ImageIcon className="w-3 h-3 text-neutral-600" />
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
-            <span className="text-[10px] text-neutral-500 uppercase tracking-widest">{tpl.label}</span>
+            
+            <div className="flex flex-col items-center gap-1">
+              <span className="text-[10px] font-bold text-neutral-300 group-hover:text-white transition-colors uppercase tracking-widest">{tpl.label}</span>
+              <span className="text-[9px] text-neutral-600 font-medium italic">
+                {tpl.type === 'collage' ? `${tpl.slots} slots` : 'classic frame'}
+              </span>
+            </div>
           </button>
         ))}
         

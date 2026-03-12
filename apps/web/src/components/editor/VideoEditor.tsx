@@ -378,29 +378,6 @@ export function VideoEditor() {
           <div className="flex-1 overflow-auto p-2 space-y-1.5 custom-scrollbar">
             <VideoTimeline zoom={zoom} videoRef={videoRef} />
             
-            {/* Audio track */}
-            <div className="flex items-center h-10 px-4 gap-3">
-              <div className="w-24 shrink-0 text-[10px] font-medium text-neutral-600">Audio Track</div>
-              <div 
-                className="flex-1 h-full bg-neutral-900 rounded border border-neutral-800/50 relative overflow-hidden"
-                style={{ minWidth: `${100 * zoom}%` }}
-              >
-                {useVideoStore.getState().audioUrl ? (
-                  <div className="absolute inset-0 bg-emerald-500/10 border-y border-emerald-500/20 flex items-center px-4">
-                    <div className="w-full h-2 bg-emerald-500/20 rounded-full overflow-hidden flex gap-0.5">
-                       {Array.from({length: 40}).map((_, i) => (
-                         <div key={i} className="flex-1 bg-emerald-400" style={{ height: `${Math.random() * 100}%` }} />
-                       ))}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-[9px] text-neutral-700 italic">No audio track</span>
-                  </div>
-                )}
-              </div>
-            </div>
-
             {/* Subtitle track */}
             <SubtitleTrack zoom={zoom} />
           </div>

@@ -7,7 +7,13 @@ import { useVideoStore, Subtitle } from "@/stores/videoStore";
 import { useVideoEditor } from "@/hooks/useVideoEditor";
 
 export function VideoSubtitlePanel({ onApplySubtitles }: { onApplySubtitles: () => void }) {
-  const { subtitles, setSubtitles, currentTime, videoDuration } = useVideoStore();
+  const { 
+    subtitles, setSubtitles, currentTime, videoDuration,
+    subtitleFontSize, setSubtitleFontSize,
+    subtitleColor, setSubtitleColor,
+    subtitleBgColor, setSubtitleBgColor,
+    subtitlePosition, setSubtitlePosition
+  } = useVideoStore();
   const { generateAISubtitles } = useVideoEditor();
   const [newText, setNewText] = useState("");
   const [isAiGenerating, setIsAiGenerating] = useState(false);
@@ -85,6 +91,89 @@ export function VideoSubtitlePanel({ onApplySubtitles }: { onApplySubtitles: () 
             >
               <Plus className="w-4 h-4 mr-1" /> Add at current time
             </Button>
+          </div>
+        </div>
+
+        <div className="h-px bg-neutral-800" />
+        
+        {/* Styling Controls */}
+        <div className="space-y-4">
+          <h4 className="text-[10px] font-bold text-neutral-500 uppercase tracking-widest px-1">Styling & Appearance</h4>
+          
+          <div className="bg-neutral-900/40 rounded-xl p-3 border border-neutral-800/50 space-y-4">
+            {/* Position Selector */}
+            <div className="space-y-2">
+              <label className="text-[10px] text-neutral-500 font-medium ml-1">Position</label>
+              <div className="grid grid-cols-3 gap-1 bg-black/40 p-1 rounded-lg">
+                {(['top', 'middle', 'bottom'] as const).map((pos) => (
+                  <button
+                    key={pos}
+                    onClick={() => setSubtitlePosition(pos)}
+                    className={`text-[9px] py-1.5 rounded-md transition-all capitalize font-bold tracking-tight ${
+                      subtitlePosition === pos 
+                        ? 'bg-indigo-600 text-white shadow-lg' 
+                        : 'text-neutral-500 hover:text-neutral-300 hover:bg-white/5'
+                    }`}
+                  >
+                    {pos}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="h-px bg-neutral-800/80 my-1" />
+
+            {/* Appearance */}
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] text-neutral-500 font-medium">Text Color</label>
+                  <div className="flex gap-2 items-center bg-black/20 p-1.5 rounded-lg border border-neutral-800/50">
+                    <input 
+                      type="color" 
+                      value={subtitleColor} 
+                      onChange={(e) => setSubtitleColor(e.target.value)}
+                      className="w-6 h-6 rounded-md bg-transparent border-none cursor-pointer p-0"
+                    />
+                    <span className="text-[10px] text-neutral-400 font-mono tracking-tighter uppercase">{subtitleColor}</span>
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] text-neutral-500 font-medium">Background</label>
+                  <div className="flex gap-2 items-center bg-black/20 p-1.5 rounded-lg border border-neutral-800/50">
+                    <input 
+                      type="color" 
+                      value={subtitleBgColor === 'transparent' ? '#000000' : subtitleBgColor} 
+                      onChange={(e) => setSubtitleBgColor(e.target.value)}
+                      className="w-6 h-6 rounded-md bg-transparent border-none cursor-pointer p-0 grayscale-[0.5] opacity-80"
+                    />
+                     <button 
+                      onClick={() => setSubtitleBgColor('transparent')}
+                      className={`text-[9px] px-1.5 py-1 rounded bg-neutral-800 hover:bg-neutral-700 transition-colors ${
+                        subtitleBgColor === 'transparent' ? 'text-indigo-400' : 'text-neutral-500'
+                      }`}
+                    >
+                      None
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-2 pt-1">
+                <div className="flex justify-between items-center">
+                  <label className="text-[10px] text-neutral-500 font-medium">Font Size</label>
+                  <span className="text-[10px] text-indigo-400 font-bold bg-indigo-500/10 px-1.5 py-0.5 rounded">{subtitleFontSize}px</span>
+                </div>
+                <input 
+                  type="range" 
+                  min="12" 
+                  max="72" 
+                  value={subtitleFontSize} 
+                  onChange={(e) => setSubtitleFontSize(parseInt(e.target.value))}
+                  className="w-full h-1 bg-neutral-800 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+                />
+              </div>
+            </div>
           </div>
         </div>
 

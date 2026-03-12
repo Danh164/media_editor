@@ -4,6 +4,7 @@ import multipart from "@fastify/multipart";
 import rateLimit from "@fastify/rate-limit";
 import { removeBgRoute } from "./routes/remove-bg.js";
 import { upscaleRoute } from "./routes/upscale.js";
+import { transcribeRoute } from "./routes/transcribe.js";
 import { healthRoute } from "./routes/health.js";
 
 const HOST = process.env.HOST ?? "0.0.0.0";
@@ -49,9 +50,10 @@ async function bootstrap() {
   await app.register(healthRoute);
   await app.register(removeBgRoute, { prefix: "/api" });
   await app.register(upscaleRoute, { prefix: "/api" });
+  await app.register(transcribeRoute, { prefix: "/api" });
 
   // ── Global error handler ───────────────────────────────────────────────────
-  app.setErrorHandler((error, _request, reply) => {
+  app.setErrorHandler((error: any, _request, reply) => {
     app.log.error(error);
     const status = error.statusCode ?? 500;
     reply.status(status).send({

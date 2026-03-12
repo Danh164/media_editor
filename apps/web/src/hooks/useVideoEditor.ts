@@ -240,22 +240,29 @@ export function useVideoEditor() {
 
       /**
        * MIXING STRATEGY:
-       * 1. Apply adelay to new audio [1:a] based on 'startTime'.
-       * 2. Apply volume to new audio.
-       * 3. Mix original with new audio.
+       * 1. Apply volume to parent video audio [0:a]
+       * 2. Apply adelay to new audio [1:a] based on 'startTime'.
+       * 3. Apply volume to new audio [new_a]
+       * 4. Mix both using amix.
        */
-      const delayMs = Math.floor(startTime * 1000);
+      const { 
+        originalAudioVolume, bgAudioVolume, bgAudioStartTime,
+        bgAudioTrimStart, bgAudioTrimEnd
+      } = useVideoStore.getState();
+      const delayMs = Math.floor(bgAudioStartTime * 1000);
+      
       try {
         await ffmpeg.run(
           '-y',
           '-i', videoInputName,
+          '-ss', bgAudioTrimStart.toString(),
+          '-to', bgAudioTrimEnd.toString(),
           '-i', audioInputName,
-          '-filter_complex', `[1:a]adelay=${delayMs}|${delayMs},volume=${volume}[new_a];[0:a][new_a]amix=inputs=2:duration=first[a]`,
+          '-filter_complex', `[0:a]volume=${originalAudioVolume}[orig_a];[1:a]adelay=delays=${delayMs}:all=1,volume=${bgAudioVolume}[new_a];[orig_a][new_a]amix=inputs=2:duration=first:dropout_transition=0[a]`,
           '-map', '0:v:0',
           '-map', '[a]',
           '-c:v', 'copy', 
           '-c:a', audioCodec,
-          '-shortest',
           outputName
         );
       } catch (mixErr) {
@@ -263,13 +270,14 @@ export function useVideoEditor() {
         await ffmpeg.run(
           '-y',
           '-i', videoInputName,
+          '-ss', bgAudioTrimStart.toString(),
+          '-to', bgAudioTrimEnd.toString(),
           '-i', audioInputName,
-          '-filter_complex', `[1:a]adelay=${delayMs}|${delayMs},volume=${volume}[a]`,
+          '-filter_complex', `[1:a]adelay=delays=${delayMs}:all=1,volume=${bgAudioVolume}[a]`,
           '-map', '0:v:0',
           '-map', '[a]',
           '-c:v', 'copy',
           '-c:a', audioCodec,
-          '-shortest',
           outputName
         );
       }
@@ -300,7 +308,8 @@ export function useVideoEditor() {
     
     const { 
       videoUrl, videoExt, setIsProcessing, setProgress, setVideoUrl,
-      subtitles
+      subtitles,
+      subtitleColor, subtitleBgColor, subtitleFontSize, subtitlePosition
     } = useVideoStore.getState();
 
     if (!videoUrl || !ffmpegRef.current || subtitles.length === 0) return;
@@ -332,12 +341,16 @@ export function useVideoEditor() {
 
       /**
        * SUBTITLE BURNING:
-       * We use drawtext repeatedly for each subtitle because 'subtitles' filter 
-       * in wasm builds often has issues with font paths/configs.
+       * We use drawtext repeatedly for each subtitle.
+       * 1. Calculate Y position based on preset
+       * 2. Apply background box if color is not transparent
        */
+      const yOffset = subtitlePosition === 'top' ? 'h*0.1' : subtitlePosition === 'middle' ? '(h-text_h)/2' : 'h-text_h-50';
+      const boxFilter = subtitleBgColor !== 'transparent' ? `:box=1:boxcolor=${subtitleBgColor}:boxborderw=10` : '';
+
       const filters = subtitles.map(s => {
         const escaped = s.text.replace(/'/g, "'\\\\''");
-        return `drawtext=fontfile=${fontName}:text='${escaped}':fontcolor=white:fontsize=24:x=(w-text_w)/2:y=h-60:enable='between(t,${s.start},${s.end})'`;
+        return `drawtext=fontfile=${fontName}:text='${escaped}':fontcolor=${subtitleColor}:fontsize=${subtitleFontSize}:x=(w-text_w)/2:y=${yOffset}${boxFilter}:enable='between(t,${s.start},${s.end})'`;
       }).join(',');
 
       await ffmpeg.run(
