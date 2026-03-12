@@ -129,9 +129,10 @@ export function useVideoEditor() {
 
     setIsProcessing(true);
     setProgress(0);
-    const ffmpeg = ffmpegRef.current;
-    
-    let lastErrorLog = "";
+      const ffmpeg = ffmpegRef.current;
+      const { fetchFile } = window.FFmpeg;
+      
+      let lastErrorLog = "";
     ffmpeg.setLogger(({ type, message }: { type: string, message: string }) => {
       console.log(`[ffmpeg ${type}]`, message);
       if (type === "fferr" && message.toLowerCase().includes("error")) {
@@ -143,17 +144,25 @@ export function useVideoEditor() {
       const ext = useVideoStore.getState().videoExt || 'mp4';
       const inputName = `input.${ext}`;
       const outputName = `output.${ext}`;
+      const videoUrl = useVideoStore.getState().videoUrl;
+
+      // CRITICAL: Ensure input reflects CURRENT state URL (stale FS is a common crash cause)
+      if (videoUrl) {
+        ffmpeg.FS("writeFile", inputName, await fetchFile(videoUrl));
+      }
 
       try { ffmpeg.FS("unlink", outputName); } catch {}
 
-      // Frame-accurate re-encode (copy fails on short web videos without keyframes)
+      // Robustness: libx264 requires even dimensions + copy audio
       await ffmpeg.run(
         "-y",
         "-i", inputName,
         "-ss", start.toString(),
         "-t", (end - start).toString(),
+        "-vf", "scale=trunc(iw/2)*2:trunc(ih/2)*2", // Ensure even dimensions
         "-c:v", "libx264",
         "-preset", "ultrafast",
+        "-c:a", "copy",
         outputName
       );
 
@@ -175,9 +184,11 @@ export function useVideoEditor() {
 
       // Chain: write output back as input for future ops
       ffmpeg.FS("writeFile", inputName, data);
-    } catch (e) {
+    } catch (e: any) {
       console.error("Error trimming video:", e);
-      alert(`Trimming failed! FFmpeg error: ${lastErrorLog || 'Unknown crash'}`);
+      // More descriptive error
+      const errorMsg = e?.message || lastErrorLog || 'Unknown crash (possibly OOM or invalid dimensions)';
+      alert(`Trimming failed! FFmpeg error: ${errorMsg}`);
     } finally {
       setIsProcessing(false);
       setProgress(0);
@@ -214,11 +225,17 @@ export function useVideoEditor() {
       try { ffmpeg.FS("unlink", outputName); } catch {}
 
       ffmpeg.FS('writeFile', audioInputName, await fetchFile(audioFile));
+      
+      // Ensure video input is synced
+      if (videoUrl) {
+         ffmpeg.FS('writeFile', videoInputName, await fetchFile(videoUrl));
+      }
 
       await ffmpeg.run(
         '-y',
         '-i', videoInputName,
         '-i', audioInputName,
+        '-vf', 'scale=trunc(iw/2)*2:trunc(ih/2)*2', // Ensure even dimensions
         '-c:v', 'libx264',
         '-preset', 'ultrafast',
         '-c:a', audioCodec,
@@ -291,7 +308,7 @@ export function useVideoEditor() {
       await ffmpeg.run(
         "-y",
         "-i", inputName,
-        "-vf", `drawtext=fontfile=${fontName}:text='${escapedText}':fontcolor=${overlayTextColor}:fontsize=${overlayFontSize}:x=(w-text_w)/2:y=(h-text_h)/2`,
+        "-vf", `scale=trunc(iw/2)*2:trunc(ih/2)*2,drawtext=fontfile=${fontName}:text='${escapedText}':fontcolor=${overlayTextColor}:fontsize=${overlayFontSize}:x=(w-text_w)/2:y=(h-text_h)/2`,
         "-c:v", "libx264",
         "-preset", "ultrafast",
         "-crf", "23",
