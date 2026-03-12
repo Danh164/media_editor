@@ -12,21 +12,41 @@ export function VideoTimeline({ zoom = 1, videoRef }: VideoTimelineProps) {
   const { videoDuration, trimStart, trimEnd, setTrimStart, setTrimEnd, currentTime } = useVideoStore();
   const trackRef = useRef<HTMLDivElement>(null);
 
-  const handleDrag = (e: React.PointerEvent, handle: "start" | "end") => {
+  const handleDrag = (e: React.PointerEvent, handle: "start" | "end" | "body") => {
     e.preventDefault();
+    e.stopPropagation();
     if (!trackRef.current || videoDuration === 0) return;
 
     const trackRect = trackRef.current.getBoundingClientRect();
+    const initialT = (e.clientX - trackRect.left) / trackRect.width * videoDuration;
+    const initialStart = trimStart;
+    const initialEnd = trimEnd;
+    const duration = trimEnd - trimStart;
 
     const onMove = (ev: PointerEvent) => {
-      const offset = ev.clientX - trackRect.left;
-      let t = Math.max(0, Math.min(videoDuration, (offset / trackRect.width) * videoDuration));
+      const currentT = (ev.clientX - trackRect.left) / trackRect.width * videoDuration;
+      const delta = currentT - initialT;
+
       if (handle === "start") {
-        t = Math.min(t, trimEnd - 0.5);
+        let t = Math.max(0, Math.min(trimEnd - 0.5, initialStart + delta));
         setTrimStart(t);
-      } else {
-        t = Math.max(t, trimStart + 0.5);
+      } else if (handle === "end") {
+        let t = Math.max(trimStart + 0.5, Math.min(videoDuration, initialEnd + delta));
         setTrimEnd(t);
+      } else if (handle === "body") {
+        let newStart = initialStart + delta;
+        let newEnd = initialEnd + delta;
+
+        if (newStart < 0) {
+          newStart = 0;
+          newEnd = duration;
+        } else if (newEnd > videoDuration) {
+          newEnd = videoDuration;
+          newStart = videoDuration - duration;
+        }
+
+        setTrimStart(newStart);
+        setTrimEnd(newEnd);
       }
     };
 
@@ -107,8 +127,9 @@ export function VideoTimeline({ zoom = 1, videoRef }: VideoTimelineProps) {
 
         {/* Active region */}
         <div
-          className="absolute top-1 bottom-1 rounded bg-indigo-500/20 border-y border-indigo-500/60"
+          className="absolute top-1 bottom-1 rounded bg-indigo-500/20 border-y border-indigo-500/60 cursor-move z-10"
           style={{ left: `${startPct}%`, right: `${100 - endPct}%` }}
+          onPointerDown={(e) => handleDrag(e, "body")}
         />
 
         {/* Film strip pattern */}
