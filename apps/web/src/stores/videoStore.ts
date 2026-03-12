@@ -32,6 +32,10 @@ interface VideoState {
   setAudioUrl: (url: string | null) => void;
   videoExt: string | null;
   setVideoExt: (ext: string | null) => void;
+  videoWidth: number;
+  setVideoWidth: (width: number) => void;
+  videoHeight: number;
+  setVideoHeight: (height: number) => void;
 
   // Text Overlay
   overlayText: string;
@@ -79,6 +83,10 @@ export const useVideoStore = create<VideoState>((set) => ({
   setAudioUrl: (url) => set({ audioUrl: url }),
   videoExt: null,
   setVideoExt: (ext) => set({ videoExt: ext }),
+  videoWidth: 0,
+  setVideoWidth: (videoWidth) => set({ videoWidth }),
+  videoHeight: 0,
+  setVideoHeight: (videoHeight) => set({ videoHeight }),
 
   overlayText: "",
   setOverlayText: (overlayText) => set({ overlayText }),

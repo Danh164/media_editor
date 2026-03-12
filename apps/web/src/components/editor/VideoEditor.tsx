@@ -35,6 +35,7 @@ export function VideoEditor() {
     overlayText, overlayTextColor, overlayFontSize,
     overlayX, setOverlayX, overlayY, setOverlayY,
     overlayStartTime, overlayEndTime, overlayEffect,
+    videoWidth, setVideoWidth, videoHeight, setVideoHeight,
   } = useVideoStore();
 
   const [isDraggingText, setIsDraggingText] = useState(false);
@@ -151,6 +152,13 @@ export function VideoEditor() {
 
   const { trimVideo, addAudioTrack, burnText, burnSubtitles } = useVideoEditor();
 
+  // Calculate scaled font size for accurate preview
+  const getPreviewFontSize = () => {
+    if (!videoRef.current || !videoWidth) return overlayFontSize;
+    const displayWidth = videoRef.current.clientWidth;
+    return (overlayFontSize * displayWidth) / videoWidth;
+  };
+
   return (
     <div className={`flex flex-1 h-full overflow-hidden ${isDraggingText ? 'select-none' : ''}`}>
       {/* Main editor column */}
@@ -183,6 +191,13 @@ export function VideoEditor() {
                   className="w-full h-full object-contain"
                   controls={false}
                   autoPlay={false}
+                  onLoadedMetadata={(e) => {
+                    const video = e.currentTarget;
+                    if (video.videoWidth > 0) {
+                      setVideoWidth(video.videoWidth);
+                      setVideoHeight(video.videoHeight);
+                    }
+                  }}
                 />
                 {/* Overlay controls */}
                 <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
@@ -223,7 +238,7 @@ export function VideoEditor() {
                         top: `${overlayY}%`,
                         transform: "translate(-50%, -50%)",
                         color: overlayTextColor,
-                        fontSize: `${overlayFontSize}px`,
+                        fontSize: `${getPreviewFontSize()}px`,
                         fontWeight: "bold",
                         textShadow: "0 2px 4px rgba(0,0,0,0.5)",
                       }}

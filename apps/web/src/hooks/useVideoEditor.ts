@@ -56,6 +56,8 @@ export function useVideoEditor() {
     setTrimStart,
     setTrimEnd,
     setVideoExt,
+    setVideoWidth,
+    setVideoHeight,
   } = useVideoStore();
 
   const loadFFmpeg = useCallback(async () => {
@@ -117,6 +119,8 @@ export function useVideoEditor() {
         setVideoDuration(d);
         setTrimStart(0);
         setTrimEnd(d);
+        setVideoWidth(tempVideo.videoWidth);
+        setVideoHeight(tempVideo.videoHeight);
       };
     } catch (e) {
       console.error("Error uploading video:", e);
