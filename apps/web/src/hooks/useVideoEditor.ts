@@ -372,7 +372,7 @@ export function useVideoEditor() {
     const { 
       videoUrl, videoExt, setIsProcessing, setProgress, setVideoUrl,
       overlayText, overlayTextColor, overlayFontSize,
-      overlayX, overlayY
+      overlayX, overlayY, overlayStartTime, overlayEndTime, overlayEffect
     } = useVideoStore.getState();
 
     if (!videoUrl || !ffmpegRef.current) return;
@@ -405,10 +405,28 @@ export function useVideoEditor() {
       // drawtext filter: escape text if needed
       const escapedText = overlayText.replace(/'/g, "'\\\\''");
       
+      /**
+       * ADVANCED FILTER CHAIN:
+       * 1. DrawText at calculated position (X, Y) with 'enable' for timing.
+       * 2. Apply Fade-in if selected.
+       * 3. Apply Zoom-in if selected.
+       * FFmpeg DrawText doesn't have a built-in 'fade' hook for just the text without complex alpha masking,
+       * so we use the 'alpha' parameter with a mathematical expression for fade.
+       */
+      let textFilter = `drawtext=fontfile=${fontName}:text='${escapedText}':fontcolor=${overlayTextColor}:fontsize=${overlayFontSize}:x=(w*${overlayX}/100-text_w/2):y=(h*${overlayY}/100-text_h/2):enable='between(t,${overlayStartTime},${overlayEndTime})'`;
+      
+      if (overlayEffect === 'fade') {
+        // Fade in text alpha over 0.5 seconds starting at overlayStartTime
+        textFilter += `:alpha='if(lt(t,${overlayStartTime}),0,if(lt(t,${overlayStartTime}+0.5),(t-${overlayStartTime})/0.5,1))'`;
+      } else if (overlayEffect === 'zoom') {
+        // Simple zoom effect by modulating fontsize over 0.5s
+        textFilter = `drawtext=fontfile=${fontName}:text='${escapedText}':fontcolor=${overlayTextColor}:fontsize='if(lt(t,${overlayStartTime}),0,if(lt(t,${overlayStartTime}+0.5),${overlayFontSize}*(t-${overlayStartTime})/0.5,${overlayFontSize}))':x=(w*${overlayX}/100-text_w/2):y=(h*${overlayY}/100-text_h/2):enable='between(t,${overlayStartTime},${overlayEndTime})'`;
+      }
+
       await ffmpeg.run(
         "-y",
         "-i", inputName,
-        "-vf", `scale=trunc(iw/2)*2:trunc(ih/2)*2,drawtext=fontfile=${fontName}:text='${escapedText}':fontcolor=${overlayTextColor}:fontsize=${overlayFontSize}:x=(w*${overlayX}/100-text_w/2):y=(h*${overlayY}/100-text_h/2)`,
+        "-vf", `scale=trunc(iw/2)*2:trunc(ih/2)*2,${textFilter}`,
         "-c:v", "libx264",
         "-preset", "ultrafast",
         "-crf", "23",

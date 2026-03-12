@@ -44,6 +44,12 @@ interface VideoState {
   setOverlayX: (x: number) => void;
   overlayY: number;
   setOverlayY: (y: number) => void;
+  overlayStartTime: number;
+  setOverlayStartTime: (time: number) => void;
+  overlayEndTime: number;
+  setOverlayEndTime: (time: number) => void;
+  overlayEffect: 'none' | 'fade' | 'zoom';
+  setOverlayEffect: (effect: 'none' | 'fade' | 'zoom') => void;
 
   // Subtitles
   subtitles: Subtitle[];
@@ -84,6 +90,12 @@ export const useVideoStore = create<VideoState>((set) => ({
   setOverlayX: (overlayX) => set({ overlayX }),
   overlayY: 50,
   setOverlayY: (overlayY) => set({ overlayY }),
+  overlayStartTime: 0,
+  setOverlayStartTime: (overlayStartTime) => set({ overlayStartTime }),
+  overlayEndTime: 5,
+  setOverlayEndTime: (overlayEndTime) => set({ overlayEndTime }),
+  overlayEffect: 'none',
+  setOverlayEffect: (overlayEffect) => set({ overlayEffect }),
 
   subtitles: [],
   setSubtitles: (subs) => set((state) => ({ 

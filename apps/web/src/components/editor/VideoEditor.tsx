@@ -34,7 +34,10 @@ export function VideoEditor() {
     currentTime, setCurrentTime, activeSidebarPanel,
     overlayText, overlayTextColor, overlayFontSize,
     overlayX, setOverlayX, overlayY, setOverlayY,
+    overlayStartTime, overlayEndTime, overlayEffect,
   } = useVideoStore();
+
+  const [isDraggingText, setIsDraggingText] = useState(false);
 
   /* Hook moved below for consolidated destructuring */
 
@@ -175,20 +178,28 @@ export function VideoEditor() {
                   </Button>
                 </div>
                 {/* Interactive Text Overlay Preview */}
-                {activeSidebarPanel === "text" && overlayText && (
+                {activeSidebarPanel === "text" && 
+                 overlayText && 
+                 currentTime >= overlayStartTime && 
+                 currentTime <= overlayEndTime && (
                   <div 
                     className="absolute inset-0 z-10 overflow-hidden pointer-events-none"
                     onMouseMove={(e) => {
-                      if (e.buttons !== 1) return;
+                      if (!isDraggingText) return;
                       const rect = e.currentTarget.getBoundingClientRect();
                       const x = ((e.clientX - rect.left) / rect.width) * 100;
                       const y = ((e.clientY - rect.top) / rect.height) * 100;
                       setOverlayX(Math.max(0, Math.min(100, x)));
                       setOverlayY(Math.max(0, Math.min(100, y)));
                     }}
+                    onMouseUp={() => setIsDraggingText(false)}
+                    onMouseLeave={() => setIsDraggingText(false)}
                   >
                     <div
-                      className="absolute cursor-move pointer-events-auto select-none whitespace-nowrap active:scale-95 transition-transform"
+                      className={`absolute cursor-move pointer-events-auto select-none whitespace-nowrap active:scale-95 transition-all duration-300
+                        ${overlayEffect === 'fade' ? 'animate-in fade-in fill-mode-both' : ''}
+                        ${overlayEffect === 'zoom' ? 'animate-in zoom-in fill-mode-both' : ''}
+                      `}
                       style={{
                         left: `${overlayX}%`,
                         top: `${overlayY}%`,
@@ -200,6 +211,7 @@ export function VideoEditor() {
                       }}
                       onMouseDown={(e) => {
                         e.stopPropagation();
+                        setIsDraggingText(true);
                       }}
                     >
                       {overlayText}

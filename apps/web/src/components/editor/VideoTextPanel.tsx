@@ -16,7 +16,10 @@ export function VideoTextPanel({ onApplyText }: VideoTextPanelProps) {
     overlayText, setOverlayText, 
     overlayTextColor, setOverlayTextColor,
     overlayFontSize, setOverlayFontSize,
-    videoUrl
+    overlayStartTime, setOverlayStartTime,
+    overlayEndTime, setOverlayEndTime,
+    overlayEffect, setOverlayEffect,
+    videoDuration, videoUrl
   } = useVideoStore();
 
   return (
@@ -77,6 +80,52 @@ export function VideoTextPanel({ onApplyText }: VideoTextPanelProps) {
             step={1}
             onValueChange={(val) => setOverlayFontSize((val as number[])[0])}
           />
+        </div>
+
+        {/* Timing */}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <label className="text-[11px] uppercase tracking-wider text-neutral-500 font-bold">Start Time (s)</label>
+            <input 
+              type="number"
+              value={overlayStartTime}
+              onChange={(e) => setOverlayStartTime(Number(e.target.value))}
+              min={0}
+              max={videoDuration}
+              className="w-full bg-neutral-900 border border-neutral-800 rounded-lg p-2 text-sm text-white"
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-[11px] uppercase tracking-wider text-neutral-500 font-bold">End Time (s)</label>
+            <input 
+              type="number"
+              value={overlayEndTime}
+              onChange={(e) => setOverlayEndTime(Number(e.target.value))}
+              min={0}
+              max={videoDuration}
+              className="w-full bg-neutral-900 border border-neutral-800 rounded-lg p-2 text-sm text-white"
+            />
+          </div>
+        </div>
+
+        {/* Entrance Effect */}
+        <div className="space-y-3">
+          <label className="text-[11px] uppercase tracking-wider text-neutral-500 font-bold">Entrance Effect</label>
+          <div className="grid grid-cols-3 gap-2">
+            {(['none', 'fade', 'zoom'] as const).map(effect => (
+              <button
+                key={effect}
+                onClick={() => setOverlayEffect(effect)}
+                className={`py-2 px-3 rounded-lg text-xs capitalize border transition-all ${
+                  overlayEffect === effect 
+                    ? 'bg-indigo-600 border-indigo-500 text-white' 
+                    : 'bg-neutral-900 border-neutral-800 text-neutral-500 hover:border-neutral-700'
+                }`}
+              >
+                {effect}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
