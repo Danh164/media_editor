@@ -6,8 +6,6 @@ const withNextIntl = createNextIntlPlugin('./src/i18n.ts');
 const nextConfig = {
   // Standalone output enables minimal Docker images
   output: 'standalone',
-  // Exclude FFmpeg from SSR bundling — it uses window.location at parse time
-  serverExternalPackages: ['@ffmpeg/ffmpeg', '@ffmpeg/core'],
   async headers() {
     return [
       {
