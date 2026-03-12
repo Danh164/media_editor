@@ -71,7 +71,7 @@ export function VideoEditor() {
       video.removeEventListener("ended", onEnded);
       video.removeEventListener("timeupdate", handleTimeUpdate);
     };
-  }, [handleTimeUpdate]);
+  }, [handleTimeUpdate, videoUrl]);
 
   // Seek when clicking on the playhead area
   const handleSeek = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -255,7 +255,7 @@ export function VideoEditor() {
             className="h-8 border-b border-neutral-800 flex items-center px-4 text-[10px] text-neutral-700 font-mono select-none shrink-0 relative cursor-pointer bg-neutral-900/40"
             onClick={handleSeek}
           >
-            <div className="w-28 shrink-0 border-r border-neutral-800 h-full flex items-center px-2 text-neutral-500">
+            <div className="w-24 shrink-0 border-r border-neutral-800 h-full flex items-center px-2 text-neutral-500">
                TIMESTAMP
             </div>
             
@@ -284,7 +284,7 @@ export function VideoEditor() {
             {videoDuration > 0 && (
               <div
                 className="absolute top-0 bottom-0 w-px bg-red-500 z-20 pointer-events-none"
-                style={{ left: `calc(7rem + ${(currentTime / videoDuration) * (zoom * 100)}%)` }}
+                style={{ left: `calc(6.5rem + ${(currentTime / videoDuration) * 98}%)` }}
               >
                 <div className="absolute top-0 -left-[5px] w-2.5 h-2.5 bg-red-500 rounded-b-sm shadow-sm" />
               </div>
@@ -292,7 +292,7 @@ export function VideoEditor() {
           </div>
 
           {/* Track rows */}
-          <div className="flex-1 overflow-y-auto p-2 space-y-1.5">
+          <div className="flex-1 overflow-auto p-2 space-y-1.5 custom-scrollbar">
             <VideoTimeline zoom={zoom} videoRef={videoRef} />
             
             {/* Audio track */}
