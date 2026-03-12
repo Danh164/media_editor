@@ -195,7 +195,7 @@ export function useVideoEditor() {
     }
   };
 
-  const addAudioTrack = async (audioFile: File, volume: number = 1.0): Promise<void> => {
+  const addAudioTrack = async (audioFile: File, volume: number = 1.0, startTime: number = 0): Promise<void> => {
     if (!ffmpegRef.current || !ffmpegRef.current.isLoaded()) return;
     if (!useVideoStore.getState().videoUrl) return;
 
@@ -235,16 +235,17 @@ export function useVideoEditor() {
 
       /**
        * MIXING STRATEGY:
-       * 1. Check if source has audio.
-       * 2. If yes: mix original with new audio [1:a] attenuated by 'volume'.
-       * 3. If no: just use [1:a] attenuated by 'volume'.
+       * 1. Apply adelay to new audio [1:a] based on 'startTime'.
+       * 2. Apply volume to new audio.
+       * 3. Mix original with new audio.
        */
+      const delayMs = Math.floor(startTime * 1000);
       try {
         await ffmpeg.run(
           '-y',
           '-i', videoInputName,
           '-i', audioInputName,
-          '-filter_complex', `[1:a]volume=${volume}[new_a];[0:a][new_a]amix=inputs=2:duration=first[a]`,
+          '-filter_complex', `[1:a]adelay=${delayMs}|${delayMs},volume=${volume}[new_a];[0:a][new_a]amix=inputs=2:duration=first[a]`,
           '-map', '0:v:0',
           '-map', '[a]',
           '-c:v', 'copy', 
@@ -253,12 +254,12 @@ export function useVideoEditor() {
           outputName
         );
       } catch (mixErr) {
-        console.warn("Mixing failed (likely no source audio), falling back to replacement with volume...");
+        console.warn("Mixing failed (likely no source audio), falling back to replacement with delay/volume...");
         await ffmpeg.run(
           '-y',
           '-i', videoInputName,
           '-i', audioInputName,
-          '-filter_complex', `[1:a]volume=${volume}[a]`,
+          '-filter_complex', `[1:a]adelay=${delayMs}|${delayMs},volume=${volume}[a]`,
           '-map', '0:v:0',
           '-map', '[a]',
           '-c:v', 'copy',

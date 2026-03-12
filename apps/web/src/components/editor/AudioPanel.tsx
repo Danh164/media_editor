@@ -7,7 +7,7 @@ import { useVideoStore } from "@/stores/videoStore";
 import { useTranslations } from "next-intl";
 
 interface AudioPanelProps {
-  onAddAudio: (file: File, volume: number) => Promise<void>;
+  onAddAudio: (file: File, volume: number, startTime: number) => Promise<void>;
 }
 
 export function AudioPanel({ onAddAudio }: AudioPanelProps) {
@@ -17,6 +17,7 @@ export function AudioPanel({ onAddAudio }: AudioPanelProps) {
   const [audioName, setAudioName] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [volumeRatio, setVolumeRatio] = useState(1);
+  const [startTime, setStartTime] = useState(0);
 
   const handleAudioSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -37,7 +38,7 @@ export function AudioPanel({ onAddAudio }: AudioPanelProps) {
 
   const handleApply = async () => {
     if (!selectedFile) return;
-    await onAddAudio(selectedFile, volumeRatio);
+    await onAddAudio(selectedFile, volumeRatio, startTime);
   };
 
   return (
@@ -104,6 +105,21 @@ export function AudioPanel({ onAddAudio }: AudioPanelProps) {
               value={volumeRatio}
               onChange={(e) => setVolumeRatio(parseFloat(e.target.value))}
               className="w-full accent-indigo-500"
+            />
+          </div>
+
+          {/* Start Time control */}
+          <div className="space-y-1.5">
+            <label className="text-[10px] text-neutral-500 uppercase tracking-wider">
+              Start Time (seconds)
+            </label>
+            <input
+              type="number"
+              min={0}
+              step={0.1}
+              value={startTime}
+              onChange={(e) => setStartTime(parseFloat(e.target.value) || 0)}
+              className="w-full bg-neutral-900 border border-neutral-700 rounded px-2 py-1 text-xs text-white"
             />
           </div>
 
