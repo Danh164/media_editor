@@ -1,0 +1,119 @@
+{
+  "common": {
+    "cancel": "Hủy",
+    "apply": "Áp dụng",
+    "reset": "Đặt lại",
+    "undo": "Hoàn tác",
+    "redo": "Làm lại",
+    "save": "Lưu",
+    "delete": "Xóa",
+    "upload": "Tải lên",
+    "download": "Tải xuống",
+    "processing": "Đang xử lý...",
+    "loading": "Đang tải...",
+    "noFile": "Chưa có tệp",
+    "or": "hoặc"
+  },
+  "home": {
+    "title": "Trình chỉnh sửa Media",
+    "subtitle": "Ứng dụng chỉnh sửa ảnh và video trực tuyến, mã nguồn mở, tích hợp AI.",
+    "imageEditor": {
+      "title": "Chỉnh sửa ảnh",
+      "description": "Tạo và chỉnh sửa ảnh với lớp đối tượng, bộ lọc, văn bản, hình dạng và xóa nền bằng AI.",
+      "cta": "Mở trình chỉnh sửa ảnh"
+    },
+    "videoEditor": {
+      "title": "Chỉnh sửa video",
+      "description": "Cắt ghép clip, thêm nhạc, tạo phụ đề và xuất file ngay trên trình duyệt.",
+      "cta": "Mở trình chỉnh sửa video"
+    }
+  },
+  "toolbar": {
+    "file": "Tệp",
+    "edit": "Chỉnh sửa",
+    "view": "Xem",
+    "export": "Xuất file",
+    "undo": "Hoàn tác",
+    "redo": "Làm lại",
+    "language": "Ngôn ngữ"
+  },
+  "editor": {
+    "image": "Chỉnh sửa ảnh",
+    "video": "Chỉnh sửa video",
+    "noVideo": "Chưa có video",
+    "noVideoHint": "Dùng công cụ Tải lên trong thanh bên",
+    "processingVideo": "Đang xử lý video…",
+    "selectObject": "Chọn một đối tượng để chỉnh sửa thuộc tính",
+    "properties": "Thuộc tính",
+    "tools": {
+      "uploadImage": "Tải ảnh lên",
+      "crop": "Cắt & Thay đổi kích thước",
+      "filter": "Bộ lọc",
+      "text": "Thêm văn bản",
+      "draw": "Vẽ",
+      "removeBg": "Xóa nền",
+      "upscale": "Tăng độ phân giải",
+      "uploadVideo": "Tải video lên",
+      "trim": "Cắt & Ghép",
+      "audio": "Thêm âm thanh",
+      "subtitle": "Phụ đề"
+    },
+    "playback": {
+      "play": "Phát",
+      "pause": "Tạm dừng",
+      "skipBack": "Ve đầu",
+      "skipForward": "Về cuối",
+      "mute": "Tắt tiếng",
+      "unmute": "Bật tiếng",
+      "zoom": "Thu phóng",
+      "split": "Tách tại vị trí hiện tại"
+    },
+    "timeline": {
+      "videoTrack": "Video 1",
+      "audioTrack": "Track âm thanh",
+      "emptyTrack": "Trống",
+      "uploadHint": "Tải video lên để xem dòng thời gian"
+    },
+    "trim": {
+      "title": "Cắt video",
+      "start": "Bắt đầu",
+      "end": "Kết thúc",
+      "outputDuration": "Thời lượng đầu ra",
+      "applyTrim": "Áp dụng cắt",
+      "uploadFirst": "Hãy tải video lên trước.",
+      "reset": "Đặt lại điểm cắt"
+    },
+    "audio": {
+      "title": "Thêm âm thanh",
+      "description": "Thay thế hoặc ghép track âm thanh vào video của bạn bằng FFmpeg.",
+      "clickToSelect": "Nhấn để chọn tệp âm thanh",
+      "supportedFormats": "MP3, WAV, AAC",
+      "volume": "Âm lượng",
+      "mergeAudio": "Ghép âm thanh",
+      "uploadFirst": "Hãy tải video lên trước.",
+      "removeAudio": "Xóa âm thanh"
+    },
+    "subtitle": {
+      "title": "Phụ đề",
+      "comingSoon": "Công cụ phụ đề sắp ra mắt."
+    },
+    "export": {
+      "title": "Xuất file",
+      "format": "Định dạng",
+      "quality": "Chất lượng",
+      "download": "Tải xuống"
+    },
+    "filters": {
+      "none": "Không có",
+      "grayscale": "Đen trắng",
+      "sepia": "Sepia",
+      "invert": "Đảo ngược",
+      "brightness": "Độ sáng",
+      "contrast": "Độ tương phản",
+      "saturation": "Độ bão hòa",
+      "blur": "Làm mờ",
+      "sharpen": "Làm sắc nét",
+      "vintage": "Cổ điển"
+    }
+  }
+}

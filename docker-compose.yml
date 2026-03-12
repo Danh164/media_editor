@@ -1,0 +1,46 @@
+version: "3.9"
+
+services:
+  # ─── Next.js Web App ─────────────────────
+  web:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+    image: media-editor-web:latest
+    container_name: media-editor-web
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=http://localhost:4000
+    env_file:
+      - .env
+    depends_on:
+      - api
+    networks:
+      - editor-net
+
+  # ─── Fastify API ──────────────────────────
+  api:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+    image: media-editor-api:latest
+    container_name: media-editor-api
+    restart: unless-stopped
+    ports:
+      - "4000:4000"
+    environment:
+      - NODE_ENV=production
+      - PORT=4000
+      - HOST=0.0.0.0
+      - WEB_ORIGIN=http://localhost:3000
+    env_file:
+      - .env
+    networks:
+      - editor-net
+
+networks:
+  editor-net:
+    driver: bridge

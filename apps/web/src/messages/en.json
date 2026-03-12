@@ -1,0 +1,119 @@
+{
+  "common": {
+    "cancel": "Cancel",
+    "apply": "Apply",
+    "reset": "Reset",
+    "undo": "Undo",
+    "redo": "Redo",
+    "save": "Save",
+    "delete": "Delete",
+    "upload": "Upload",
+    "download": "Download",
+    "processing": "Processing...",
+    "loading": "Loading...",
+    "noFile": "No file loaded",
+    "or": "or"
+  },
+  "home": {
+    "title": "Media Editor",
+    "subtitle": "Open-source, browser-based editor for images and videos with AI capabilities.",
+    "imageEditor": {
+      "title": "Image Editor",
+      "description": "Create and edit images with layers, filters, text, shapes, and AI background removal.",
+      "cta": "Open Image Editor"
+    },
+    "videoEditor": {
+      "title": "Video Editor",
+      "description": "Trim, cut, merge clips, add audio, create subtitles, and export seamlessly in the browser.",
+      "cta": "Open Video Editor"
+    }
+  },
+  "toolbar": {
+    "file": "File",
+    "edit": "Edit",
+    "view": "View",
+    "export": "Export",
+    "undo": "Undo",
+    "redo": "Redo",
+    "language": "Language"
+  },
+  "editor": {
+    "image": "Image Editor",
+    "video": "Video Editor",
+    "noVideo": "No video loaded",
+    "noVideoHint": "Use the Upload tool in the sidebar",
+    "processingVideo": "Processing video…",
+    "selectObject": "Select an object to edit its properties",
+    "properties": "Properties",
+    "tools": {
+      "uploadImage": "Upload Image",
+      "crop": "Crop & Resize",
+      "filter": "Filters",
+      "text": "Add Text",
+      "draw": "Draw",
+      "removeBg": "Remove BG",
+      "upscale": "Upscale",
+      "uploadVideo": "Upload Video",
+      "trim": "Trim & Cut",
+      "audio": "Add Audio",
+      "subtitle": "Subtitles"
+    },
+    "playback": {
+      "play": "Play",
+      "pause": "Pause",
+      "skipBack": "Skip to start",
+      "skipForward": "Skip to end",
+      "mute": "Mute",
+      "unmute": "Unmute",
+      "zoom": "Zoom",
+      "split": "Split at playhead"
+    },
+    "timeline": {
+      "videoTrack": "Video 1",
+      "audioTrack": "Audio Track",
+      "emptyTrack": "Empty",
+      "uploadHint": "Upload a video to view timeline"
+    },
+    "trim": {
+      "title": "Trim Video",
+      "start": "Start",
+      "end": "End",
+      "outputDuration": "Output duration",
+      "applyTrim": "Apply Trim",
+      "uploadFirst": "Upload a video first.",
+      "reset": "Reset trim"
+    },
+    "audio": {
+      "title": "Add Audio",
+      "description": "Replace or overlay an audio track on your video using FFmpeg.",
+      "clickToSelect": "Click to select audio file",
+      "supportedFormats": "MP3, WAV, AAC",
+      "volume": "Volume",
+      "mergeAudio": "Merge Audio",
+      "uploadFirst": "Upload a video first.",
+      "removeAudio": "Remove audio"
+    },
+    "subtitle": {
+      "title": "Subtitles",
+      "comingSoon": "Subtitle tool coming soon."
+    },
+    "export": {
+      "title": "Export",
+      "format": "Format",
+      "quality": "Quality",
+      "download": "Download"
+    },
+    "filters": {
+      "none": "None",
+      "grayscale": "Grayscale",
+      "sepia": "Sepia",
+      "invert": "Invert",
+      "brightness": "Brightness",
+      "contrast": "Contrast",
+      "saturation": "Saturation",
+      "blur": "Blur",
+      "sharpen": "Sharpen",
+      "vintage": "Vintage"
+    }
+  }
+}
