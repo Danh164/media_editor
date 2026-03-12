@@ -235,23 +235,36 @@ export function useVideoEditor() {
 
       /**
        * MIXING STRATEGY:
-       * -i 0: Video input
-       * -i 1: Audio input
-       * filter_complex [0:a][1:a]amix=inputs=2:duration=first[a]
-       * -shortest and -map [a] ensure we don't loop or lose video.
+       * We first try to mix [0:a] and [1:a].
+       * If it fails (usually because 0:a is missing), we fallback to just using [1:a].
        */
-      await ffmpeg.run(
-        '-y',
-        '-i', videoInputName,
-        '-i', audioInputName,
-        '-filter_complex', '[0:a][1:a]amix=inputs=2:duration=first[a]',
-        '-map', '0:v:0',
-        '-map', '[a]',
-        '-c:v', 'copy', // Just copy video to save time/quality
-        '-c:a', audioCodec,
-        '-shortest',
-        outputName
-      );
+      try {
+        await ffmpeg.run(
+          '-y',
+          '-i', videoInputName,
+          '-i', audioInputName,
+          '-filter_complex', '[0:a][1:a]amix=inputs=2:duration=first[a]',
+          '-map', '0:v:0',
+          '-map', '[a]',
+          '-c:v', 'copy', 
+          '-c:a', audioCodec,
+          '-shortest',
+          outputName
+        );
+      } catch (mixErr) {
+        console.warn("Mixing failed (likely no source audio), falling back to replacement...");
+        await ffmpeg.run(
+          '-y',
+          '-i', videoInputName,
+          '-i', audioInputName,
+          '-map', '0:v:0',
+          '-map', '1:a:0',
+          '-c:v', 'copy',
+          '-c:a', audioCodec,
+          '-shortest',
+          outputName
+        );
+      }
 
       const data = ffmpeg.FS('readFile', outputName);
       const mime = ext === 'webm' ? 'video/webm' : ext === 'mov' ? 'video/quicktime' : 'video/mp4';

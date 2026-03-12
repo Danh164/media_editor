@@ -39,11 +39,34 @@ export function VideoTimeline({ zoom = 1, videoRef }: VideoTimelineProps) {
     window.addEventListener("pointerup", onUp);
   };
 
-  const handleTrackClick = (e: React.MouseEvent<HTMLDivElement>) => {
+  const handleTrackPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!trackRef.current || !videoRef?.current || videoDuration === 0) return;
-    const rect = trackRef.current.getBoundingClientRect();
-    const ratio = (e.clientX - rect.left) / rect.width;
-    videoRef.current.currentTime = ratio * videoDuration;
+    
+    // Prevent dragging handles from triggering this
+    if ((e.target as HTMLElement).classList.contains('cursor-ew-resize')) return;
+
+    const trackRect = trackRef.current.getBoundingClientRect();
+    const video = videoRef.current;
+
+    const updateSeek = (clientX: number) => {
+      const ratio = (clientX - trackRect.left) / trackRect.width;
+      const t = Math.max(0, Math.min(videoDuration, ratio * videoDuration));
+      video.currentTime = t;
+    };
+
+    updateSeek(e.clientX);
+
+    const onMove = (ev: PointerEvent) => {
+      updateSeek(ev.clientX);
+    };
+
+    const onUp = () => {
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+    };
+
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
   };
 
   if (videoDuration === 0) {
@@ -67,9 +90,9 @@ export function VideoTimeline({ zoom = 1, videoRef }: VideoTimelineProps) {
 
       <div
         ref={trackRef}
-        className="flex-1 relative h-full bg-neutral-800/60 rounded border border-neutral-700/50 cursor-pointer overflow-hidden"
+        className="flex-1 relative h-full bg-neutral-800/60 rounded border border-neutral-700/50 cursor-pointer overflow-hidden touch-none"
         style={{ minWidth: `${100 * zoom}%` }}
-        onClick={handleTrackClick}
+        onPointerDown={handleTrackPointerDown}
       >
         {/* Trimmed-out region overlay (before start) */}
         <div
