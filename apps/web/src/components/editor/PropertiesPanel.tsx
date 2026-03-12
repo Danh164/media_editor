@@ -1,10 +1,11 @@
 "use client";
 
-import { Slider } from "@/components/ui/slider";
 import { useRef, useEffect, useState } from "react";
-import { Settings2, SlidersHorizontal, Pen } from "lucide-react";
+import { Settings2, SlidersHorizontal, Pen, Image as ImageIcon } from "lucide-react";
 import { useEditorStore } from "@/stores/editorStore";
 import { filters, FabricImage } from "fabric";
+import { Button } from "@/components/ui/button";
+import { Slider } from "@/components/ui/slider";
 
 export function PropertiesPanel() {
   const { activeObject, activeTool, canvas, pushHistory, strokeColor, setStrokeColor, strokeWidth, setStrokeWidth } = useEditorStore();
@@ -93,6 +94,51 @@ export function PropertiesPanel() {
         </div>
         <div className="flex-1 flex items-center justify-center text-xs text-neutral-500 p-4 text-center">
           Select an object to edit its properties
+        </div>
+      </div>
+    );
+  }
+
+  // Collage Slot properties
+  if (activeObject && (activeObject as any).isSlot) {
+    return (
+      <div className="w-64 bg-[#1a1a1a] border-l border-neutral-800 flex flex-col h-full shrink-0">
+        <div className="h-12 border-b border-neutral-800 flex items-center px-4 shrink-0">
+          <ImageIcon className="w-4 h-4 mr-2 text-neutral-400" />
+          <h2 className="text-sm font-semibold text-neutral-200">Collage Slot</h2>
+        </div>
+        <div className="flex-1 p-4 space-y-6">
+          <div className="p-4 rounded-xl bg-neutral-900 border border-neutral-800 text-center">
+             <p className="text-xs text-neutral-400 mb-4 font-medium">{(activeObject as any).slotLabel}</p>
+             <Button 
+                onClick={() => {
+                  const input = document.createElement('input');
+                  input.type = 'file';
+                  input.accept = 'image/*';
+                  input.onchange = (e) => {
+                    const file = (e.target as HTMLInputElement).files?.[0];
+                    if (file) {
+                      const reader = new FileReader();
+                      reader.onload = (f) => {
+                        const data = f.target?.result as string;
+                        window.dispatchEvent(new CustomEvent("editor:fillSlot", { 
+                          detail: { data, slot: activeObject } 
+                        }));
+                      };
+                      reader.readAsDataURL(file);
+                    }
+                  };
+                  input.click();
+                }}
+                className="w-full bg-indigo-600 hover:bg-indigo-500 text-white text-xs gap-2"
+             >
+                <ImageIcon className="w-3.5 h-3.5" />
+                Replace with Image
+             </Button>
+          </div>
+          <p className="text-[10px] text-neutral-500 italic text-center leading-relaxed">
+            Click the button above to fill this slot with your own photo.
+          </p>
         </div>
       </div>
     );

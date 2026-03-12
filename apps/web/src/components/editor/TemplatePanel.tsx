@@ -6,8 +6,10 @@ import { Rect } from "fabric";
 
 const TEMPLATES = [
   { id: "frame-1", label: "Classic Border", type: "frame" },
-  { id: "frame-2", label: "Modern Glass", type: "glass" },
   { id: "frame-3", label: "Polaroid", type: "polaroid" },
+  { id: "collage-2", label: "2-Split", type: "collage", slots: 2 },
+  { id: "collage-3", label: "3-Grid", type: "collage", slots: 3 },
+  { id: "collage-4", label: "4-Quarter", type: "collage", slots: 4 },
 ];
 
 export function TemplatePanel() {
@@ -52,11 +54,52 @@ export function TemplatePanel() {
       (frame as any).isFrame = true;
       canvas.add(frame);
       canvas.sendObjectToBack(frame);
-      canvas.backgroundColor = "#f3f4f6";
+    } else if (id === "collage-2") {
+      // 2-Split Vertical
+      const w = canvas.width! / 2;
+      const h = canvas.height!;
+      createSlot(0, 0, w - 2, h, "#374151", "Slot 1");
+      createSlot(w + 2, 0, w - 2, h, "#4b5563", "Slot 2");
+    } else if (id === "collage-3") {
+      // 3-Grid (1 big top, 2 small bottom)
+      const w = canvas.width!;
+      const h = canvas.height! / 2;
+      createSlot(0, 0, w, h - 2, "#374151", "Slot 1");
+      createSlot(0, h + 2, w / 2 - 2, h - 2, "#4b5563", "Slot 2");
+      createSlot(w / 2 + 2, h + 2, w / 2 - 2, h - 2, "#6b7280", "Slot 3");
+    } else if (id === "collage-4") {
+      // 4-Quarter
+      const w = canvas.width! / 2;
+      const h = canvas.height! / 2;
+      createSlot(0, 0, w - 2, h - 2, "#374151", "Slot 1");
+      createSlot(w + 2, 0, w - 2, h - 2, "#4b5563", "Slot 2");
+      createSlot(0, h + 2, w - 2, h - 2, "#6b7280", "Slot 3");
+      createSlot(w + 2, h + 2, w - 2, h - 2, "#9ca3af", "Slot 4");
     }
     
     canvas.renderAll();
     pushHistory(canvas.toJSON() as any);
+  };
+
+  const createSlot = (left: number, top: number, width: number, height: number, color: string, label: string) => {
+    if (!canvas) return;
+    const slot = new Rect({
+      left,
+      top,
+      width,
+      height,
+      fill: color,
+      stroke: "#1f2937",
+      strokeWidth: 1,
+      selectable: true,
+      hoverCursor: "pointer",
+    });
+    
+    // Custom properties for slot logic
+    (slot as any).isSlot = true;
+    (slot as any).slotLabel = label;
+
+    canvas.add(slot);
   };
 
   return (

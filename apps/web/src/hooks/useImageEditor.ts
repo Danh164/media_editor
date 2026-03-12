@@ -209,6 +209,43 @@ export function useImageEditor() {
     });
   }, [canvas]);
 
+  const fillSlot = useCallback((url: string, slot: Rect) => {
+    if (!canvas) return;
+    FabricImage.fromURL(url, { crossOrigin: "anonymous" }).then((img) => {
+      // 1. Scale image to COVER the slot
+      const slotW = slot.getScaledWidth();
+      const slotH = slot.getScaledHeight();
+      const scale = Math.max(slotW / img.width!, slotH / img.height!);
+      
+      img.set({
+        scaleX: scale,
+        scaleY: scale,
+        left: slot.left! + (slotW - img.width! * scale) / 2,
+        top: slot.top! + (slotH - img.height! * scale) / 2,
+      });
+
+      // 2. Wrap image in a group or use clipPath? 
+      // For collage slots, clipPath is cleaner.
+      const clipRect = new Rect({
+        left: slot.left,
+        top: slot.top,
+        width: slotW,
+        height: slotH,
+        absolutePositioned: true
+      });
+      img.set({ clipPath: clipRect });
+
+      // 3. Mark image as part of this slot for later updates
+      (img as any).isSlotImage = true;
+      (img as any).parentSlotId = (slot as any).id;
+
+      canvas.add(img);
+      canvas.sendObjectToBack(img); // Put image behind the thin slot border if needed
+      canvas.renderAll();
+      pushHistory(canvas.toJSON() as any);
+    });
+  }, [canvas, pushHistory]);
+
   // Tool events listener with up-to-date callbacks
   useEffect(() => {
     const onAddText = () => addText();
@@ -222,6 +259,13 @@ export function useImageEditor() {
         addImage(customEvent.detail);
       }
     };
+    const onFillSlot = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      const { data, slot } = customEvent.detail;
+      if (data && slot) {
+        fillSlot(data, slot);
+      }
+    };
 
     window.addEventListener("editor:addText", onAddText);
     window.addEventListener("editor:addRect", onAddRect);
@@ -229,6 +273,7 @@ export function useImageEditor() {
     window.addEventListener("editor:addTriangle", onAddTriangle);
     window.addEventListener("editor:addStar", onAddStar);
     window.addEventListener("editor:addImage", onAddImage);
+    window.addEventListener("editor:fillSlot", onFillSlot);
 
     return () => {
       window.removeEventListener("editor:addText", onAddText);
@@ -237,6 +282,7 @@ export function useImageEditor() {
       window.removeEventListener("editor:addTriangle", onAddTriangle);
       window.removeEventListener("editor:addStar", onAddStar);
       window.removeEventListener("editor:addImage", onAddImage);
+      window.removeEventListener("editor:fillSlot", onFillSlot);
     };
   }, [addText, addRectangle, addCircle, addTriangle, addStar, addImage]);
 
