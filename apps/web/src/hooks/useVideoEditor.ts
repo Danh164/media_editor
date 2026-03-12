@@ -195,7 +195,7 @@ export function useVideoEditor() {
     }
   };
 
-  const addAudioTrack = async (audioFile: File): Promise<void> => {
+  const addAudioTrack = async (audioFile: File, volume: number = 1.0): Promise<void> => {
     if (!ffmpegRef.current || !ffmpegRef.current.isLoaded()) return;
     if (!useVideoStore.getState().videoUrl) return;
 
@@ -235,15 +235,16 @@ export function useVideoEditor() {
 
       /**
        * MIXING STRATEGY:
-       * We first try to mix [0:a] and [1:a].
-       * If it fails (usually because 0:a is missing), we fallback to just using [1:a].
+       * 1. Check if source has audio.
+       * 2. If yes: mix original with new audio [1:a] attenuated by 'volume'.
+       * 3. If no: just use [1:a] attenuated by 'volume'.
        */
       try {
         await ffmpeg.run(
           '-y',
           '-i', videoInputName,
           '-i', audioInputName,
-          '-filter_complex', '[0:a][1:a]amix=inputs=2:duration=first[a]',
+          '-filter_complex', `[1:a]volume=${volume}[new_a];[0:a][new_a]amix=inputs=2:duration=first[a]`,
           '-map', '0:v:0',
           '-map', '[a]',
           '-c:v', 'copy', 
@@ -252,13 +253,14 @@ export function useVideoEditor() {
           outputName
         );
       } catch (mixErr) {
-        console.warn("Mixing failed (likely no source audio), falling back to replacement...");
+        console.warn("Mixing failed (likely no source audio), falling back to replacement with volume...");
         await ffmpeg.run(
           '-y',
           '-i', videoInputName,
           '-i', audioInputName,
+          '-filter_complex', `[1:a]volume=${volume}[a]`,
           '-map', '0:v:0',
-          '-map', '1:a:0',
+          '-map', '[a]',
           '-c:v', 'copy',
           '-c:a', audioCodec,
           '-shortest',

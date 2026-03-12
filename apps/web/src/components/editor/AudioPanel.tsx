@@ -7,7 +7,7 @@ import { useVideoStore } from "@/stores/videoStore";
 import { useTranslations } from "next-intl";
 
 interface AudioPanelProps {
-  onAddAudio: (file: File) => Promise<void>;
+  onAddAudio: (file: File, volume: number) => Promise<void>;
 }
 
 export function AudioPanel({ onAddAudio }: AudioPanelProps) {
@@ -15,27 +15,29 @@ export function AudioPanel({ onAddAudio }: AudioPanelProps) {
   const t = useTranslations("editor");
   const audioInputRef = useRef<HTMLInputElement>(null);
   const [audioName, setAudioName] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [volumeRatio, setVolumeRatio] = useState(1);
 
   const handleAudioSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     setAudioName(file.name);
+    setSelectedFile(file);
     // Create preview URL
     if (audioUrl) URL.revokeObjectURL(audioUrl);
     setAudioUrl(URL.createObjectURL(file));
-    e.target.value = "";
   };
 
   const handleRemoveAudio = () => {
     if (audioUrl) URL.revokeObjectURL(audioUrl);
     setAudioUrl(null);
     setAudioName(null);
+    setSelectedFile(null);
   };
 
   const handleApply = async () => {
-    if (!audioInputRef.current?.files?.[0]) return;
-    await onAddAudio(audioInputRef.current.files[0]);
+    if (!selectedFile) return;
+    await onAddAudio(selectedFile, volumeRatio);
   };
 
   return (
