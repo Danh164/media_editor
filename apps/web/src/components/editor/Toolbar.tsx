@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 import { Undo2, Redo2, Download, MousePointer2, Globe } from "lucide-react";
 import { useEditorStore } from "@/stores/editorStore";
 import { MenuBar } from "./MenuBar";
@@ -38,9 +39,11 @@ export function Toolbar({ onExport }: { onExport?: () => void }) {
   return (
     <header className="h-14 border-b border-neutral-800 bg-[#0f0f0f] flex items-center justify-between px-4 shrink-0 relative z-50">
       <div className="flex items-center gap-4">
-        <h1 className="text-xl font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
-          MediaEditor
-        </h1>
+        <Link href={`/${locale}`} className="hover:opacity-80 transition-opacity">
+          <h1 className="text-xl font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
+            MediaEditor
+          </h1>
+        </Link>
         <div className="h-6 w-px bg-neutral-800 hidden sm:block" />
         <MenuBar onExport={onExport} />
       </div>
