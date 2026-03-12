@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useCallback, useEffect } from "react";
+import { toast } from "sonner";
 import { useVideoStore } from "@/stores/videoStore";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -188,7 +189,7 @@ export function useVideoEditor() {
       console.error("Error trimming video:", e);
       // More descriptive error
       const errorMsg = e?.message || lastErrorLog || 'Unknown crash (possibly OOM or invalid dimensions)';
-      alert(`Trimming failed! FFmpeg error: ${errorMsg}`);
+      toast.error(`Trimming failed! FFmpeg error: ${errorMsg}`);
     } finally {
       setIsProcessing(false);
       setProgress(0);
@@ -278,10 +279,10 @@ export function useVideoEditor() {
 
       // Save for future ops
       ffmpeg.FS('writeFile', videoInputName, data);
-      alert("Audio mixed successfully!");
+      toast.success("Audio mixed successfully!");
     } catch (e) {
       console.error('Error mixing audio track:', e);
-      alert(`Mixing audio failed! FFmpeg error: ${lastErrorLog || 'Unknown crash'}`);
+      toast.error(`Mixing audio failed! FFmpeg error: ${lastErrorLog || 'Unknown crash'}`);
     } finally {
       setIsProcessing(false);
       setProgress(0);
@@ -353,10 +354,10 @@ export function useVideoEditor() {
       setVideoUrl(url);
       
       ffmpeg.FS("writeFile", inputName, data);
-      alert("Subtitles burned successfully!");
+      toast.success("Subtitles burned successfully!");
     } catch (error: any) {
       console.error(error);
-      alert("Subtitle burning failed!");
+      toast.error("Subtitle burning failed!");
     } finally {
       setIsProcessing(false);
       setProgress(0);
@@ -423,10 +424,10 @@ export function useVideoEditor() {
       
       // Chain
       ffmpeg.FS("writeFile", inputName, data);
-      alert("Text burned successfully!");
+      toast.success("Text burned successfully!");
     } catch (error: any) {
       console.error(error);
-      alert("Burning failed! See console for FFmpeg errors.");
+      toast.error("Burning failed! See console for FFmpeg errors.");
     } finally {
       setIsProcessing(false);
       setProgress(0);

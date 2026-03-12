@@ -1,6 +1,7 @@
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages, getLocale } from "next-intl/server";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { Toaster } from "sonner";
 import "./globals.css";
 
 export const metadata = {
@@ -24,6 +25,7 @@ export default async function LocaleLayout({
         <NextIntlClientProvider locale={locale} messages={messages}>
           <TooltipProvider>
             {children}
+            <Toaster position="top-right" richColors closeButton theme="dark" />
           </TooltipProvider>
         </NextIntlClientProvider>
       </body>

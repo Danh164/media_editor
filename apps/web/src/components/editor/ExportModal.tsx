@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { useEditorStore } from "@/stores/editorStore";
 import { useVideoStore } from "@/stores/videoStore";
 import { useTranslations } from "next-intl";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 // ────────────────────────────────────────────
@@ -85,7 +86,7 @@ export function ExportModal({ mode, onClose }: ExportModalProps) {
       setTimeout(() => setExported(false), 2500);
     } catch (err) {
       console.error("Export failed:", err);
-      alert("Export failed! This might be due to non-standard images on the canvas. Try a different format or check the console.");
+      toast.error("Export failed! Check console for details.");
     } finally {
       setIsExporting(false);
     }
@@ -109,7 +110,7 @@ export function ExportModal({ mode, onClose }: ExportModalProps) {
       setTimeout(() => setExported(false), 2500);
     } catch (err) {
       console.error("Video export failed:", err);
-      alert("Failed to download video. Please try again.");
+      toast.error("Failed to download video. Please try again.");
     } finally {
       setIsExporting(false);
     }
