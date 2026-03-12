@@ -371,7 +371,8 @@ export function useVideoEditor() {
     
     const { 
       videoUrl, videoExt, setIsProcessing, setProgress, setVideoUrl,
-      overlayText, overlayTextColor, overlayFontSize
+      overlayText, overlayTextColor, overlayFontSize,
+      overlayX, overlayY
     } = useVideoStore.getState();
 
     if (!videoUrl || !ffmpegRef.current) return;
@@ -407,7 +408,7 @@ export function useVideoEditor() {
       await ffmpeg.run(
         "-y",
         "-i", inputName,
-        "-vf", `scale=trunc(iw/2)*2:trunc(ih/2)*2,drawtext=fontfile=${fontName}:text='${escapedText}':fontcolor=${overlayTextColor}:fontsize=${overlayFontSize}:x=(w-text_w)/2:y=(h-text_h)/2`,
+        "-vf", `scale=trunc(iw/2)*2:trunc(ih/2)*2,drawtext=fontfile=${fontName}:text='${escapedText}':fontcolor=${overlayTextColor}:fontsize=${overlayFontSize}:x=(w*${overlayX}/100-text_w/2):y=(h*${overlayY}/100-text_h/2)`,
         "-c:v", "libx264",
         "-preset", "ultrafast",
         "-crf", "23",

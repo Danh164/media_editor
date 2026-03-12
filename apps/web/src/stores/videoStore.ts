@@ -40,6 +40,10 @@ interface VideoState {
   setOverlayTextColor: (color: string) => void;
   overlayFontSize: number;
   setOverlayFontSize: (size: number) => void;
+  overlayX: number;
+  setOverlayX: (x: number) => void;
+  overlayY: number;
+  setOverlayY: (y: number) => void;
 
   // Subtitles
   subtitles: Subtitle[];
@@ -76,6 +80,10 @@ export const useVideoStore = create<VideoState>((set) => ({
   setOverlayTextColor: (overlayTextColor) => set({ overlayTextColor }),
   overlayFontSize: 32,
   setOverlayFontSize: (overlayFontSize) => set({ overlayFontSize }),
+  overlayX: 50,
+  setOverlayX: (overlayX) => set({ overlayX }),
+  overlayY: 50,
+  setOverlayY: (overlayY) => set({ overlayY }),
 
   subtitles: [],
   setSubtitles: (subs) => set((state) => ({ 

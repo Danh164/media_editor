@@ -32,6 +32,8 @@ export function VideoEditor() {
   const {
     videoUrl, isProcessing, progress, videoDuration,
     currentTime, setCurrentTime, activeSidebarPanel,
+    overlayText, overlayTextColor, overlayFontSize,
+    overlayX, setOverlayX, overlayY, setOverlayY,
   } = useVideoStore();
 
   /* Hook moved below for consolidated destructuring */
@@ -172,6 +174,38 @@ export function VideoEditor() {
                     <Maximize2 className="w-3.5 h-3.5" />
                   </Button>
                 </div>
+                {/* Interactive Text Overlay Preview */}
+                {activeSidebarPanel === "text" && overlayText && (
+                  <div 
+                    className="absolute inset-0 z-10 overflow-hidden pointer-events-none"
+                    onMouseMove={(e) => {
+                      if (e.buttons !== 1) return;
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      const x = ((e.clientX - rect.left) / rect.width) * 100;
+                      const y = ((e.clientY - rect.top) / rect.height) * 100;
+                      setOverlayX(Math.max(0, Math.min(100, x)));
+                      setOverlayY(Math.max(0, Math.min(100, y)));
+                    }}
+                  >
+                    <div
+                      className="absolute cursor-move pointer-events-auto select-none whitespace-nowrap active:scale-95 transition-transform"
+                      style={{
+                        left: `${overlayX}%`,
+                        top: `${overlayY}%`,
+                        transform: "translate(-50%, -50%)",
+                        color: overlayTextColor,
+                        fontSize: `${overlayFontSize}px`,
+                        fontWeight: "bold",
+                        textShadow: "0 2px 4px rgba(0,0,0,0.5)",
+                      }}
+                      onMouseDown={(e) => {
+                        e.stopPropagation();
+                      }}
+                    >
+                      {overlayText}
+                    </div>
+                  </div>
+                )}
               </>
             ) : (
               <div className="flex flex-col items-center gap-3 text-neutral-600">
