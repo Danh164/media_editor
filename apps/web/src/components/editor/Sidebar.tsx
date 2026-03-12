@@ -25,6 +25,7 @@ const videoModeTools: { id: VideoSidebarPanel | "uploadVideo"; icon: typeof Scis
   { id: "uploadVideo", icon: Upload, label: "Upload Video" },
   { id: "trim", icon: Scissors, label: "Trim & Cut" },
   { id: "audio", icon: Music, label: "Add Audio" },
+  { id: "text", icon: Type, label: "Add Text" },
   { id: "subtitle", icon: VideoIcon, label: "Subtitles" },
 ];
 

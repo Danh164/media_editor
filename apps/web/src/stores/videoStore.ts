@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-export type VideoSidebarPanel = 'trim' | 'audio' | 'subtitle' | null;
+export type VideoSidebarPanel = 'trim' | 'audio' | 'subtitle' | 'text' | null;
 
 interface VideoState {
   isLoaded: boolean;
@@ -25,6 +25,14 @@ interface VideoState {
   setAudioUrl: (url: string | null) => void;
   videoExt: string | null;
   setVideoExt: (ext: string | null) => void;
+
+  // Text Overlay
+  overlayText: string;
+  setOverlayText: (text: string) => void;
+  overlayTextColor: string;
+  setOverlayTextColor: (color: string) => void;
+  overlayFontSize: number;
+  setOverlayFontSize: (size: number) => void;
 }
 
 export const useVideoStore = create<VideoState>((set) => ({
@@ -50,5 +58,12 @@ export const useVideoStore = create<VideoState>((set) => ({
   setAudioUrl: (url) => set({ audioUrl: url }),
   videoExt: null,
   setVideoExt: (ext) => set({ videoExt: ext }),
+
+  overlayText: "",
+  setOverlayText: (overlayText) => set({ overlayText }),
+  overlayTextColor: "#ffffff",
+  setOverlayTextColor: (overlayTextColor) => set({ overlayTextColor }),
+  overlayFontSize: 32,
+  setOverlayFontSize: (overlayFontSize) => set({ overlayFontSize }),
 }));
 

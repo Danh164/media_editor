@@ -248,9 +248,80 @@ export function useVideoEditor() {
     }
   };
 
+  const burnText = useCallback(async () => {
+    if (!ffmpegRef.current || !ffmpegRef.current.isLoaded()) {
+      await loadFFmpeg();
+    }
+    
+    const { 
+      videoUrl, videoExt, setIsProcessing, setProgress, setVideoUrl,
+      overlayText, overlayTextColor, overlayFontSize
+    } = useVideoStore.getState();
+
+    if (!videoUrl || !ffmpegRef.current) return;
+
+    setIsProcessing(true);
+    setProgress(0);
+    const ffmpeg = ffmpegRef.current;
+    const { fetchFile } = window.FFmpeg;
+
+    try {
+      const ext = videoExt || "mp4";
+      const inputName = `input.${ext}`;
+      const outputName = `text_output.${ext}`;
+      const fontName = "font.ttf";
+
+      // Write video
+      ffmpeg.FS("writeFile", inputName, await fetchFile(videoUrl));
+      
+      // Write font (fetch from public folder)
+      try {
+        const fontResponse = await fetch("/fonts/font.ttf");
+        const fontData = new Uint8Array(await fontResponse.arrayBuffer());
+        ffmpeg.FS("writeFile", fontName, fontData);
+      } catch (fontErr) {
+        console.warn("Failed to load custom font, text may not render:", fontErr);
+      }
+
+      try { ffmpeg.FS("unlink", outputName); } catch {}
+
+      // drawtext filter: escape text if needed
+      const escapedText = overlayText.replace(/'/g, "'\\\\''");
+      
+      await ffmpeg.run(
+        "-y",
+        "-i", inputName,
+        "-vf", `drawtext=fontfile=${fontName}:text='${escapedText}':fontcolor=${overlayTextColor}:fontsize=${overlayFontSize}:x=(w-text_w)/2:y=(h-text_h)/2`,
+        "-c:v", "libx264",
+        "-preset", "ultrafast",
+        "-crf", "23",
+        "-c:a", "copy",
+        outputName
+      );
+
+      const data = ffmpeg.FS("readFile", outputName);
+      const mime = ext === 'webm' ? 'video/webm' : ext === 'mov' ? 'video/quicktime' : 'video/mp4';
+      const url = URL.createObjectURL(new Blob([data], { type: mime }));
+      
+      if (videoUrl) URL.revokeObjectURL(videoUrl);
+      setVideoUrl(url);
+      
+      // Chain
+      ffmpeg.FS("writeFile", inputName, data);
+      alert("Text burned successfully!");
+    } catch (error: any) {
+      console.error(error);
+      alert("Burning failed! See console for FFmpeg errors.");
+    } finally {
+      setIsProcessing(false);
+      setProgress(0);
+    }
+  }, [loadFFmpeg, setIsProcessing, setProgress, setVideoUrl]);
+
   return {
     handleFileUpload,
     trimVideo,
     addAudioTrack,
+    burnText,
   };
 }

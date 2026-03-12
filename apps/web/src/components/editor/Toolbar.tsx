@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Undo2, Redo2, Download, MousePointer2, Globe } from "lucide-react";
 import { useEditorStore } from "@/stores/editorStore";
+import { MenuBar } from "./MenuBar";
 import { useTranslations, useLocale } from "next-intl";
 import { usePathname, useRouter } from "next/navigation";
 import { useTransition, useState } from "react";
@@ -41,11 +42,7 @@ export function Toolbar({ onExport }: { onExport?: () => void }) {
           MediaEditor
         </h1>
         <div className="h-6 w-px bg-neutral-800 hidden sm:block" />
-        <div className="hidden sm:flex items-center gap-1">
-          <Button variant="ghost" size="sm" className="text-neutral-400 hover:text-white">{t("file")}</Button>
-          <Button variant="ghost" size="sm" className="text-neutral-400 hover:text-white">{t("edit")}</Button>
-          <Button variant="ghost" size="sm" className="text-neutral-400 hover:text-white">{t("view")}</Button>
-        </div>
+        <MenuBar onExport={onExport} />
       </div>
 
       <div className="flex items-center gap-2">

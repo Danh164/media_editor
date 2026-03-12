@@ -10,6 +10,7 @@ import { useVideoStore } from "@/stores/videoStore";
 import { VideoTimeline } from "./VideoTimeline";
 import { TrimPanel } from "./TrimPanel";
 import { AudioPanel } from "./AudioPanel";
+import { VideoTextPanel } from "./VideoTextPanel";
 import { useVideoEditor } from "@/hooks/useVideoEditor";
 
 function formatTimestamp(s: number): string {
@@ -31,7 +32,7 @@ export function VideoEditor() {
     currentTime, setCurrentTime, activeSidebarPanel,
   } = useVideoStore();
 
-  const { trimVideo, addAudioTrack } = useVideoEditor();
+  /* Hook moved below for consolidated destructuring */
 
   const togglePlay = () => {
     if (videoRef.current) {
@@ -96,6 +97,13 @@ export function VideoEditor() {
         </div>
       );
     }
+    if (activeSidebarPanel === "text") {
+      return (
+        <div className={panelClass}>
+          <VideoTextPanel onApplyText={burnText} />
+        </div>
+      );
+    }
     if (activeSidebarPanel === "subtitle") {
       return (
         <div className={panelClass}>
@@ -108,6 +116,8 @@ export function VideoEditor() {
     }
     return null;
   };
+
+  const { trimVideo, addAudioTrack, burnText } = useVideoEditor();
 
   return (
     <div className="flex flex-1 h-full overflow-hidden">
@@ -151,11 +161,14 @@ export function VideoEditor() {
                     }
                   </button>
                 </div>
-                {/* Time / fullscreen bar */}
-                <div className="absolute bottom-0 left-0 right-0 px-4 py-3 bg-gradient-to-t from-black/80 to-transparent flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity">
-                  <span className="text-xs font-mono text-white/80">
+                {/* Top Center Time Display */}
+                <div className="absolute top-4 left-1/2 -translate-x-1/2 px-3 py-1 bg-black/50 backdrop-blur-md rounded-full border border-white/10 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                  <span className="text-xs font-mono text-white tracking-widest">
                     {formatTimestamp(currentTime)} / {formatTimestamp(videoDuration)}
                   </span>
+                </div>
+                {/* Fullscreen bar */}
+                <div className="absolute bottom-0 left-0 right-0 px-4 py-2 bg-gradient-to-t from-black/60 to-transparent flex items-center justify-end opacity-0 group-hover:opacity-100 transition-opacity">
                   <Button variant="ghost" size="icon" className="text-white hover:bg-white/20 h-7 w-7">
                     <Maximize2 className="w-3.5 h-3.5" />
                   </Button>
@@ -175,7 +188,13 @@ export function VideoEditor() {
 
         {/* Playback Controls Bar */}
         <div className="h-14 border-t border-neutral-800 bg-[#141414] px-4 flex items-center justify-between shrink-0">
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 font-sans">
+             <div className="flex items-center gap-1 mr-4">
+               <span className="text-xs font-bold text-indigo-400 min-w-[5ch]">{formatTimestamp(currentTime)}</span>
+               <span className="text-[10px] text-neutral-600">/</span>
+               <span className="text-xs text-neutral-500 min-w-[5ch]">{formatTimestamp(videoDuration)}</span>
+             </div>
+
             <Button variant="ghost" size="icon" className="text-neutral-400 hover:text-white h-8 w-8" title="Split">
               <SplitSquareVertical className="w-4 h-4" />
             </Button>
@@ -208,9 +227,6 @@ export function VideoEditor() {
             >
               {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
             </Button>
-            <span className="text-xs font-mono text-neutral-500 min-w-[7ch]">
-              {formatTimestamp(currentTime)}
-            </span>
           </div>
 
           {/* Zoom controls */}
@@ -237,23 +253,41 @@ export function VideoEditor() {
         <div className="h-48 bg-[#0f0f0f] border-t border-neutral-900 shrink-0 overflow-hidden flex flex-col">
           {/* Time Ruler */}
           <div
-            className="h-6 border-b border-neutral-800 flex items-end px-4 text-[10px] text-neutral-700 font-mono select-none shrink-0 relative cursor-pointer"
+            className="h-8 border-b border-neutral-800 flex items-center px-4 text-[10px] text-neutral-700 font-mono select-none shrink-0 relative cursor-pointer bg-neutral-900/40"
             onClick={handleSeek}
           >
-            <div className="w-28 shrink-0" />
-            {Array.from({ length: 10 }).map((_, i) => (
-              <div key={i} className="flex-1 border-l border-neutral-800 pl-1 h-full flex items-end pb-0.5">
-                {String(i * 5).padStart(2, "0")}:00
-              </div>
-            ))}
+            <div className="w-28 shrink-0 border-r border-neutral-800 h-full flex items-center px-2 text-neutral-500">
+               TIMESTAMP
+            </div>
+            
+            <div className="flex-1 h-full relative overflow-hidden">
+               {/* Fixed width timeline container to match VideoTimeline */}
+               <div 
+                 className="absolute inset-0 flex"
+                 style={{ width: `${zoom * 100}%` }}
+               >
+                 {Array.from({ length: Math.ceil((videoDuration || 60) / 5) + 1 }).map((_, i) => (
+                    <div 
+                      key={i} 
+                      className="border-l border-neutral-800 h-full flex flex-col justify-between py-1 relative"
+                      style={{ width: `${(5 / (videoDuration || 60)) * 100}%`, minWidth: '60px' }}
+                    >
+                      <span className="pl-1.5 text-neutral-500">{String(i * 5).padStart(2, "0")}s</span>
+                      <div className="flex gap-1 pl-1">
+                        {[1,2,3,4].map(j => <div key={j} className="w-px h-1 bg-neutral-800/50" />)}
+                      </div>
+                    </div>
+                  ))}
+               </div>
+            </div>
 
             {/* Live playhead on ruler */}
             {videoDuration > 0 && (
               <div
                 className="absolute top-0 bottom-0 w-px bg-red-500 z-20 pointer-events-none"
-                style={{ left: `calc(7rem + ${(currentTime / videoDuration) * (100)}%)` }}
+                style={{ left: `calc(7rem + ${(currentTime / videoDuration) * (zoom * 100)}%)` }}
               >
-                <div className="absolute -top-0 -left-[4px] w-2 h-2 bg-red-500 rounded-sm rotate-45" />
+                <div className="absolute top-0 -left-[5px] w-2.5 h-2.5 bg-red-500 rounded-b-sm shadow-sm" />
               </div>
             )}
           </div>
