@@ -74,7 +74,6 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     const { history, currentHistoryIndex, canvas } = get();
     if (currentHistoryIndex > 0 && canvas) {
       const newIndex = currentHistoryIndex - 1;
-      const state = history[newIndex];
       
       // Load state to canvas (mock for now, need actual fabric deserialization)
       canvas.clear();
@@ -92,7 +91,6 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     const { history, currentHistoryIndex, canvas } = get();
     if (currentHistoryIndex < history.length - 1 && canvas) {
       const newIndex = currentHistoryIndex + 1;
-      const state = history[newIndex];
       
       // Load state to canvas
       canvas.clear();

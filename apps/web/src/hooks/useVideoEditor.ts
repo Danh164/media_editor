@@ -144,7 +144,7 @@ export function useVideoEditor() {
       const inputName = `input.${ext}`;
       const outputName = `output.${ext}`;
 
-      try { ffmpeg.FS("unlink", outputName); } catch (e) {}
+      try { ffmpeg.FS("unlink", outputName); } catch {}
 
       // Frame-accurate re-encode (copy fails on short web videos without keyframes)
       await ffmpeg.run(
@@ -210,8 +210,8 @@ export function useVideoEditor() {
       const outputName = `muxed_output.${ext}`;
       const audioCodec = ext === 'webm' ? 'libvorbis' : 'aac';
 
-      try { ffmpeg.FS("unlink", audioInputName); } catch (e) {}
-      try { ffmpeg.FS("unlink", outputName); } catch (e) {}
+      try { ffmpeg.FS("unlink", audioInputName); } catch {}
+      try { ffmpeg.FS("unlink", outputName); } catch {}
 
       ffmpeg.FS('writeFile', audioInputName, await fetchFile(audioFile));
 

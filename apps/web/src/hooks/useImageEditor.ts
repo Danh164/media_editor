@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useCallback } from "react";
-import { Canvas, Rect, Circle, IText, Object as FabricObject, FabricImage } from "fabric";
+import { Canvas, Rect, Circle, IText, FabricImage } from "fabric";
 import { useEditorStore } from "@/stores/editorStore";
 
 export function useImageEditor() {
