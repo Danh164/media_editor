@@ -74,15 +74,16 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     const { history, currentHistoryIndex, canvas } = get();
     if (currentHistoryIndex > 0 && canvas) {
       const newIndex = currentHistoryIndex - 1;
+      const state = history[newIndex];
       
-      // Load state to canvas (mock for now, need actual fabric deserialization)
-      canvas.clear();
-      // In a real implementation: canvas.loadFromJSON(state, canvas.renderAll.bind(canvas))
-      
-      set({ 
-        currentHistoryIndex: newIndex,
-        canUndo: newIndex > 0,
-        canRedo: true
+      // Load state to canvas
+      canvas.loadFromJSON(state).then(() => {
+        canvas.renderAll();
+        set({ 
+          currentHistoryIndex: newIndex,
+          canUndo: newIndex > 0,
+          canRedo: true
+        });
       });
     }
   },
@@ -91,15 +92,16 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     const { history, currentHistoryIndex, canvas } = get();
     if (currentHistoryIndex < history.length - 1 && canvas) {
       const newIndex = currentHistoryIndex + 1;
+      const state = history[newIndex];
       
       // Load state to canvas
-      canvas.clear();
-      // In a real implementation: canvas.loadFromJSON(state, canvas.renderAll.bind(canvas))
-      
-      set({ 
-        currentHistoryIndex: newIndex,
-        canUndo: true,
-        canRedo: newIndex < history.length - 1
+      canvas.loadFromJSON(state).then(() => {
+        canvas.renderAll();
+        set({ 
+          currentHistoryIndex: newIndex,
+          canUndo: true,
+          canRedo: newIndex < history.length - 1
+        });
       });
     }
   },

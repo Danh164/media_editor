@@ -1,13 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useCallback } from "react";
-import { Canvas, Rect, Circle, IText, FabricImage } from "fabric";
+import { Canvas, Rect, Circle, IText, FabricImage, Triangle, Polygon } from "fabric";
 import { useEditorStore } from "@/stores/editorStore";
 
 export function useImageEditor() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const { setCanvas, canvas, setActiveObject, pushHistory, activeTool, strokeWidth, strokeColor } = useEditorStore();
+  const { setCanvas, canvas, setActiveObject, pushHistory, activeTool, strokeWidth, strokeColor, undo, redo } = useEditorStore();
 
   useEffect(() => {
     if (!canvasRef.current || !containerRef.current) return;
@@ -45,6 +45,7 @@ export function useImageEditor() {
 
     // Basic keyboard shortcuts
     const handleKeyDown = (e: KeyboardEvent) => {
+      // 1. Delete/Backspace
       if (e.key === "Delete" || e.key === "Backspace") {
         const activeObjects = fabricCanvas.getActiveObjects();
         if (activeObjects.length > 0) {
@@ -52,6 +53,24 @@ export function useImageEditor() {
           fabricCanvas.discardActiveObject();
           pushHistory(fabricCanvas.toJSON() as any);
         }
+      }
+
+      // 2. Undo/Redo Shortcuts
+      const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+      const cmdKey = isMac ? e.metaKey : e.ctrlKey;
+
+      if (cmdKey && e.key.toLowerCase() === 'z') {
+        e.preventDefault();
+        if (e.shiftKey) {
+          redo();
+        } else {
+          undo();
+        }
+      }
+
+      if (!isMac && cmdKey && e.key.toLowerCase() === 'y') {
+        e.preventDefault();
+        redo();
       }
     };
 
@@ -127,6 +146,33 @@ export function useImageEditor() {
     canvas.renderAll();
   }, [canvas]);
 
+  const addTriangle = useCallback(() => {
+    if (!canvas) return;
+    const triangle = new Triangle({
+      left: 100,
+      top: 100,
+      fill: "#f59e0b",
+      width: 150,
+      height: 150,
+    });
+    canvas.add(triangle);
+    canvas.setActiveObject(triangle);
+    canvas.renderAll();
+  }, [canvas]);
+
+  const addStar = useCallback(() => {
+    if (!canvas) return;
+    const points = calculateStarPoints(5, 75, 30);
+    const star = new Polygon(points, {
+      left: 100,
+      top: 100,
+      fill: "#8b5cf6",
+    });
+    canvas.add(star);
+    canvas.setActiveObject(star);
+    canvas.renderAll();
+  }, [canvas]);
+
   const clearCanvas = useCallback(() => {
     if (!canvas) return;
     canvas.clear();
@@ -165,6 +211,8 @@ export function useImageEditor() {
     const onAddText = () => addText();
     const onAddRect = () => addRectangle();
     const onAddCircle = () => addCircle();
+    const onAddTriangle = () => addTriangle();
+    const onAddStar = () => addStar();
     const onAddImage = (e: Event) => {
       const customEvent = e as CustomEvent;
       if (customEvent.detail) {
@@ -175,15 +223,19 @@ export function useImageEditor() {
     window.addEventListener("editor:addText", onAddText);
     window.addEventListener("editor:addRect", onAddRect);
     window.addEventListener("editor:addCircle", onAddCircle);
+    window.addEventListener("editor:addTriangle", onAddTriangle);
+    window.addEventListener("editor:addStar", onAddStar);
     window.addEventListener("editor:addImage", onAddImage);
 
     return () => {
       window.removeEventListener("editor:addText", onAddText);
       window.removeEventListener("editor:addRect", onAddRect);
       window.removeEventListener("editor:addCircle", onAddCircle);
+      window.removeEventListener("editor:addTriangle", onAddTriangle);
+      window.removeEventListener("editor:addStar", onAddStar);
       window.removeEventListener("editor:addImage", onAddImage);
     };
-  }, [addText, addRectangle, addCircle, addImage]);
+  }, [addText, addRectangle, addCircle, addTriangle, addStar, addImage]);
 
   return {
     canvasRef,
@@ -191,6 +243,30 @@ export function useImageEditor() {
     addText,
     addRectangle,
     addCircle,
+    addTriangle,
+    addStar,
     clearCanvas,
   };
+}
+
+// Helpers
+function calculateStarPoints(spikes: number, outerRadius: number, innerRadius: number) {
+  let rot = Math.PI / 2 * 3;
+  let x = 0;
+  let y = 0;
+  let step = Math.PI / spikes;
+  const points = [];
+
+  for (let i = 0; i < spikes; i++) {
+    x = Math.cos(rot) * outerRadius;
+    y = Math.sin(rot) * outerRadius;
+    points.push({ x, y });
+    rot += step;
+
+    x = Math.cos(rot) * innerRadius;
+    y = Math.sin(rot) * innerRadius;
+    points.push({ x, y });
+    rot += step;
+  }
+  return points;
 }

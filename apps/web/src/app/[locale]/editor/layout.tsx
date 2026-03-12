@@ -8,6 +8,8 @@ import { PropertiesPanel } from "@/components/editor/PropertiesPanel";
 import { ExportModal } from "@/components/editor/ExportModal";
 import { RemoveBgTool } from "@/components/editor/RemoveBgTool";
 import { UpscaleTool } from "@/components/editor/UpscaleTool";
+import { ShapePanel } from "@/components/editor/ShapePanel";
+import { TemplatePanel } from "@/components/editor/TemplatePanel";
 import { usePathname } from "next/navigation";
 import { useEditorStore } from "@/stores/editorStore";
 
@@ -33,19 +35,17 @@ export default function EditorLayout({
         
         {mode === "image" && <LayerPanel />}
 
-        {/* AI tool panels for image mode */}
-        {mode === "image" && activeTool === "removeBg" && (
-          <div className="w-64 shrink-0 bg-[#1a1a1a] border-l border-neutral-800 overflow-y-auto">
-            <RemoveBgTool />
-          </div>
+        {mode === "image" && activeTool === "shapes" && (
+          <ShapePanel />
         )}
-        {mode === "image" && activeTool === "upscale" && (
-          <div className="w-64 shrink-0 bg-[#1a1a1a] border-l border-neutral-800 overflow-y-auto">
-            <UpscaleTool />
-          </div>
+        {mode === "image" && activeTool === "templates" && (
+          <TemplatePanel />
         )}
 
-        <PropertiesPanel />
+        {/* Show PropertiesPanel only if no specialized tool panel is active */}
+        {!(activeTool === "removeBg" || activeTool === "upscale" || activeTool === "shapes" || activeTool === "templates") && (
+          <PropertiesPanel />
+        )}
       </div>
 
       {/* Export modal */}

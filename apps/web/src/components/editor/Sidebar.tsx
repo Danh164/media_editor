@@ -1,7 +1,7 @@
 "use client";
 
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { Scissors, Music, Upload, Video as VideoIcon, Crop, Filter, Type, Pen, Wand2 } from "lucide-react";
+import { Scissors, Music, Upload, Video as VideoIcon, Crop, Filter, Type, Pen, Wand2, Shapes, Layout } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRef } from "react";
 import { useEditorStore } from "@/stores/editorStore";
@@ -17,7 +17,9 @@ const imageModeTools = [
   { id: "crop", icon: Crop, label: "Crop & Resize" },
   { id: "filter", icon: Filter, label: "Filters" },
   { id: "text", icon: Type, label: "Add Text" },
+  { id: "shapes", icon: Shapes, label: "Shapes" },
   { id: "draw", icon: Pen, label: "Draw" },
+  { id: "templates", icon: Layout, label: "Templates" },
   { id: "removeBg", icon: Wand2, label: "Remove BG" },
 ];
 
@@ -118,7 +120,7 @@ export function Sidebar({ mode }: SidebarProps) {
                 setActiveTool(tool.id);
                 if (tool.id === "upload") fileInputRef.current?.click();
                 if (tool.id === "text") window.dispatchEvent(new CustomEvent("editor:addText"));
-                if (tool.id === "draw") window.dispatchEvent(new CustomEvent("editor:addRect"));
+                // We'll let the ImageEditor render specific panels for shapes/templates
               }}
               className={cn(
                 "w-12 h-12 rounded-xl flex items-center justify-start px-3 shrink-0 group-hover/sidebar:w-[calc(100%-1rem)] transition-all",
