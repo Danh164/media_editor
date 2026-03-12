@@ -306,22 +306,19 @@ export function useVideoEditor() {
       const ext = videoExt || "mp4";
       const inputName = `input.${ext}`;
       const outputName = `subtitle_output.${ext}`;
-      const srtName = "subs.srt";
+      const fontName = "font.ttf";
 
-      // 1. Generate SRT content
-      const srtContent = subtitles.map((s, i) => {
-        const formatTime = (seconds: number) => {
-          const date = new Date(0);
-          date.setSeconds(seconds);
-          const ms = Math.floor((seconds % 1) * 1000);
-          return date.toISOString().substr(11, 8) + "," + ms.toString().padStart(3, '0');
-        };
-        return `${i + 1}\n${formatTime(s.start)} --> ${formatTime(s.end)}\n${s.text}\n`;
-      }).join('\n');
-
-      // 2. Write files
+      // Write video
       ffmpeg.FS("writeFile", inputName, await fetchFile(videoUrl));
-      ffmpeg.FS("writeFile", srtName, new TextEncoder().encode(srtContent));
+      
+      // Write font (fetch from public folder)
+      try {
+        const fontResponse = await fetch("/fonts/font.ttf");
+        const fontData = new Uint8Array(await fontResponse.arrayBuffer());
+        ffmpeg.FS("writeFile", fontName, fontData);
+      } catch (fontErr) {
+        console.warn("Failed to load custom font for subtitles:", fontErr);
+      }
       
       try { ffmpeg.FS("unlink", outputName); } catch {}
 
@@ -332,7 +329,7 @@ export function useVideoEditor() {
        */
       const filters = subtitles.map(s => {
         const escaped = s.text.replace(/'/g, "'\\\\''");
-        return `drawtext=text='${escaped}':fontcolor=white:fontsize=24:x=(w-text_w)/2:y=h-60:enable='between(t,${s.start},${s.end})'`;
+        return `drawtext=fontfile=${fontName}:text='${escaped}':fontcolor=white:fontsize=24:x=(w-text_w)/2:y=h-60:enable='between(t,${s.start},${s.end})'`;
       }).join(',');
 
       await ffmpeg.run(
